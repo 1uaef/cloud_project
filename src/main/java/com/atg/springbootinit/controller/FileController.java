@@ -1,10 +1,12 @@
 package com.atg.springbootinit.controller;
 
 import cn.hutool.core.io.FileUtil;
+import com.atg.springbootinit.annotation.AuthCheck;
 import com.atg.springbootinit.common.BaseResponse;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.constant.FileConstant;
+import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.manager.CosManager;
 import com.atg.springbootinit.model.dto.file.UploadFileRequest;
@@ -12,6 +14,7 @@ import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.enums.FileUploadBizEnum;
 import com.atg.springbootinit.service.UserService;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +41,43 @@ public class FileController {
 
     @Resource
     private CosManager cosManager;
+
+    /**
+     * 文件上传
+     *
+     * @param multipartFile
+     * @return
+     */
+    @PostMapping("/uploadFile")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<String> uploadTextFile(@RequestPart("file") MultipartFile multipartFile) throws IOException {
+
+        // 文件上传---文件名--根据文件进行区别不同文件夹
+        String fileName = multipartFile.getOriginalFilename();
+        String filePath = String.format("/test/%s", fileName);
+        File file= null;
+        try {
+            file =  File.createTempFile(filePath, null);
+            multipartFile.transferTo(file);
+            cosManager.putObject(filePath, file);
+            return ResultUtils.success(FileConstant.COS_HOST + filePath);
+        }catch (Exception e){
+            log.error("上传文件失败", e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
+        }finally {
+            if (file != null) {
+                // 删除临时文件
+                boolean delete = file.delete();
+                if (!delete) {
+                    log.error("file delete error, filepath = {}", filePath);
+                }
+            }
+        }
+
+
+
+    }
+
 
     /**
      * 文件上传
