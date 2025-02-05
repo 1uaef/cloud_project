@@ -4,14 +4,15 @@ import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 import com.atg.springbootinit.config.CosClientConfig;
+
 import java.io.File;
 import javax.annotation.Resource;
+
+import com.qcloud.cos.model.ciModel.persistence.PicOperations;
 import org.springframework.stereotype.Component;
 
 /**
  * Cos 对象存储操作
- *
-
  */
 @Component
 public class CosManager {
@@ -25,7 +26,7 @@ public class CosManager {
     /**
      * 上传对象
      *
-     * @param key 唯一键
+     * @param key           唯一键
      * @param localFilePath 本地文件路径
      * @return
      */
@@ -38,7 +39,7 @@ public class CosManager {
     /**
      * 上传对象
      *
-     * @param key 唯一键
+     * @param key  唯一键
      * @param file 文件
      * @return
      */
@@ -46,5 +47,20 @@ public class CosManager {
         PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key,
                 file);
         return cosClient.putObject(putObjectRequest);
+    }
+
+    /**
+     * 上传图片对象
+     *
+     * @param key  唯一键
+     * @param file 文件
+     * @return
+     */
+    public PutObjectResult  putPictureObject(String key, File file) {
+        PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key, file);
+        PicOperations picOperations = new PicOperations();
+        picOperations.setIsPicInfo(1);
+        putObjectRequest.setPicOperations(picOperations);
+        return  cosClient.putObject(putObjectRequest);
     }
 }
