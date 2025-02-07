@@ -6,8 +6,11 @@ import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.vo.PictureVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
 * @author 啊汤哥
@@ -15,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 * @createDate 2025-02-05 19:23:45
 */
 public interface PictureService extends IService<Picture> {
+    // 校验图片
+    void validPicture(Picture picture);
 
     /**
      * 上传图片
@@ -26,5 +31,9 @@ public interface PictureService extends IService<Picture> {
      */
     QueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest);
 
+    // 获取单个图片信息--封装
+    PictureVO getPictureVO(Picture picture, HttpServletRequest request);
 
+    // 分页获取图片信息--封装
+    Page<PictureVO> getPictureVOPage(Page<Picture> picturePage, HttpServletRequest request);
 }

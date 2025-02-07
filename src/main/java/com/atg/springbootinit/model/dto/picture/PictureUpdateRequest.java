@@ -11,6 +11,10 @@ time: 2025/2/7 12:13
 */
 @Data
 public class PictureUpdateRequest {
+    /**
+     * id
+     */
+    private Long id;
 
     /**
      * 图片名称

@@ -1,9 +1,5 @@
 package com.atg.springbootinit.service.impl;
 
-import java.util.List;
-
-import java.util.Date;
-
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
@@ -12,20 +8,30 @@ import com.atg.springbootinit.constant.CommonConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.manager.FileManager;
+import com.atg.springbootinit.mapper.PictureMapper;
 import com.atg.springbootinit.model.dto.file.UploadPictureRequest;
 import com.atg.springbootinit.model.dto.picture.PictureQueryRequest;
 import com.atg.springbootinit.model.dto.picture.PictureUploadRequest;
+import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.vo.PictureVO;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.atg.springbootinit.model.entity.Picture;
+import com.atg.springbootinit.model.vo.UserVO;
 import com.atg.springbootinit.service.PictureService;
-import com.atg.springbootinit.mapper.PictureMapper;
+import com.atg.springbootinit.service.UserService;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author 啊汤哥
@@ -37,6 +43,27 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         implements PictureService {
     @Resource
     private FileManager fileManager;
+    @Resource
+    private UserService userService;
+
+    @Override
+    public void validPicture(Picture picture) {
+        ThrowUtils.throwIf(picture == null, ErrorCode.PARAMS_ERROR);
+        Long id = picture.getId();
+        String url = picture.getUrl();
+        String introduction = picture.getIntroduction();
+        // 修改时id不能为空
+        if (ObjUtil.isNull(id) || id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "id不能为空");
+        }
+        if (StrUtil.isNotBlank(url)){
+            ThrowUtils.throwIf(url.length()>1024, ErrorCode.PARAMS_ERROR, "url过长");
+        }
+        if (StrUtil.isNotBlank(introduction)){
+            ThrowUtils.throwIf(introduction.length()>1024, ErrorCode.PARAMS_ERROR, "introduction过长");
+        }
+
+    }
 
     /**
      * 上传图片
@@ -91,6 +118,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     }
 
+
     @Override
     public QueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest) {
         QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
@@ -110,8 +138,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         String picFormat = pictureQueryRequest.getPicFormat();
         String searchText = pictureQueryRequest.getSearchText();
         Long userId = pictureQueryRequest.getUserId();
-        int current = pictureQueryRequest.getCurrent();
-        int pageSize = pictureQueryRequest.getPageSize();
         String sortField = pictureQueryRequest.getSortField();
         String sortOrder = pictureQueryRequest.getSortOrder();
 
@@ -139,6 +165,56 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
         queryWrapper.orderBy(StrUtil.isNotBlank(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
         return queryWrapper;
+    }
+
+    @Override
+    public PictureVO getPictureVO(Picture picture, HttpServletRequest request) {
+        PictureVO pictureVO = PictureVO.objToVo(picture);
+        // 填充用户信息
+        Long userId = picture.getUserId();
+        if (userId != null){
+            User user = userService.getById(userId);
+            if (user != null){
+                UserVO userVO = userService.getUserVO(user);
+                pictureVO.setUser(userVO);
+            }
+        }
+        return pictureVO;
+    }
+
+    @Override
+    public Page<PictureVO> getPictureVOPage(Page<Picture> picturePage, HttpServletRequest request) {
+        List<Picture> pictures = picturePage.getRecords();
+        Page<PictureVO> pictureVOPage = new Page<>(picturePage.getCurrent(), picturePage.getSize(), picturePage.getTotal());
+        if (CollectionUtils.isEmpty(pictures)){
+            return pictureVOPage;
+        }
+        List<PictureVO> pictureVOList = pictures.stream()
+                .map(PictureVO::objToVo)
+                .collect(Collectors.toList());
+        // 关联用户查询信息
+        Set<Long> userIds =  pictures.stream()
+                .map(Picture::getUserId)
+                .collect(Collectors.toSet());
+
+        if (CollectionUtils.isEmpty(userIds)){
+            return pictureVOPage;
+        }
+        Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIds).stream().collect(Collectors.groupingBy(User::getId));
+
+
+        pictureVOList.forEach(pictureVO -> {
+            Long userId = pictureVO.getUserId();
+            User user = null;
+            if (userIdUserListMap.containsKey(userId)){
+                user = userIdUserListMap.get(userId).get(0);
+            }
+            if (user != null){
+                UserVO userVO = userService.getUserVO(user);
+                pictureVO.setUser(userVO);
+            }
+        });
+        return null;
     }
 
 
