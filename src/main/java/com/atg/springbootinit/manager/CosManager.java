@@ -56,11 +56,17 @@ public class CosManager {
      * @param file 文件
      * @return
      */
-    public PutObjectResult  putPictureObject(String key, File file) {
+    public PutObjectResult putPictureObject(String key, File file) {
         PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key, file);
+
+        // 创建 PicOperations 对象并设置 is_pic_info
         PicOperations picOperations = new PicOperations();
         picOperations.setIsPicInfo(1);
+
+        // 将 PicOperations 设置到 PutObjectRequest 中
         putObjectRequest.setPicOperations(picOperations);
-        return  cosClient.putObject(putObjectRequest);
+
+        // 执行上传操作
+        return cosClient.putObject(putObjectRequest);
     }
 }
