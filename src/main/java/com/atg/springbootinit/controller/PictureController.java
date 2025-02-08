@@ -10,10 +10,7 @@ import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
-import com.atg.springbootinit.model.dto.picture.PictureEditRequest;
-import com.atg.springbootinit.model.dto.picture.PictureQueryRequest;
-import com.atg.springbootinit.model.dto.picture.PictureUpdateRequest;
-import com.atg.springbootinit.model.dto.picture.PictureUploadRequest;
+import com.atg.springbootinit.model.dto.picture.*;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.vo.PictureVO;
@@ -27,7 +24,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /*
 author: atg
@@ -147,9 +148,9 @@ public class PictureController {
     /**
      * 获取图片列表（管理员）
      */
-    @GetMapping("/list/page")
+    @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<Picture>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest){
+    public BaseResponse<Page<Picture>> listPictureByPage(@RequestBody PictureQueryRequest pictureQueryRequest){
         int current = pictureQueryRequest.getCurrent();
         int pageSize = pictureQueryRequest.getPageSize();
         Page<Picture> page = pictureService.page(new Page<>(current, pageSize), pictureService.getQueryWrapper(pictureQueryRequest));
@@ -196,6 +197,19 @@ public class PictureController {
         boolean result = pictureService.updateById(picture);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
+    }
+    @GetMapping("/tag_category")
+    public BaseResponse<PictureTagCategory> getPictureTagCategory(){
+        PictureTagCategory pictureTagCategory = new PictureTagCategory();
+
+        List<String> tagList = Arrays.asList( "人物", "热门", "搞笑", "生活", "高清",
+                                           "艺术", "校园", "背景", "简历", "创意",
+                                           "旅游", "美食", "夜景", "卡通", "自热风光", "街头艺术");
+        List<String> categoryList = Arrays.asList("启动页","模板", "艺术画作", "电商", "表情包","摄影作品", "素材", "海报");
+        pictureTagCategory.setTagList(tagList);
+        pictureTagCategory.setCategoryList(categoryList);
+        return ResultUtils.success(pictureTagCategory);
+
     }
 
 
