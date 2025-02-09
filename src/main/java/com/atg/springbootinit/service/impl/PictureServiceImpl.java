@@ -1,5 +1,6 @@
 package com.atg.springbootinit.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
@@ -200,37 +201,32 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Override
     public Page<PictureVO> getPictureVOPage(Page<Picture> picturePage, HttpServletRequest request) {
-        List<Picture> pictures = picturePage.getRecords();
+        List<Picture> pictureList = picturePage.getRecords();
         Page<PictureVO> pictureVOPage = new Page<>(picturePage.getCurrent(), picturePage.getSize(), picturePage.getTotal());
-        if (CollectionUtils.isEmpty(pictures)){
+        if (CollUtil.isEmpty(pictureList)) {
             return pictureVOPage;
         }
-        List<PictureVO> pictureVOList = pictures.stream()
+        // 对象列表 => 封装对象列表
+        List<PictureVO> pictureVOList = pictureList.stream()
                 .map(PictureVO::objToVo)
                 .collect(Collectors.toList());
-        // 关联用户查询信息
-        Set<Long> userIds =  pictures.stream()
-                .map(Picture::getUserId)
-                .collect(Collectors.toSet());
-
-        if (CollectionUtils.isEmpty(userIds)){
-            return pictureVOPage;
-        }
-        Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIds).stream().collect(Collectors.groupingBy(User::getId));
-
-
+        // 1. 关联查询用户信息
+        // 1,2,3,4
+        Set<Long> userIdSet = pictureList.stream().map(Picture::getUserId).collect(Collectors.toSet());
+        // 1 => user1, 2 => user2
+        Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
+                .collect(Collectors.groupingBy(User::getId));
+        // 2. 填充信息
         pictureVOList.forEach(pictureVO -> {
             Long userId = pictureVO.getUserId();
             User user = null;
-            if (userIdUserListMap.containsKey(userId)){
+            if (userIdUserListMap.containsKey(userId)) {
                 user = userIdUserListMap.get(userId).get(0);
             }
-            if (user != null){
-                UserVO userVO = userService.getUserVO(user);
-                pictureVO.setUser(userVO);
-            }
+            pictureVO.setUser(userService.getUserVO(user));
         });
-        return null;
+        pictureVOPage.setRecords(pictureVOList);
+        return pictureVOPage;
     }
 
     @Override
