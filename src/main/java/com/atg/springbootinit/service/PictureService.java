@@ -1,6 +1,7 @@
 package com.atg.springbootinit.service;
 
 import com.atg.springbootinit.model.dto.picture.PictureQueryRequest;
+import com.atg.springbootinit.model.dto.picture.PictureReviewRequest;
 import com.atg.springbootinit.model.dto.picture.PictureUploadRequest;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.User;
@@ -36,4 +37,10 @@ public interface PictureService extends IService<Picture> {
 
     // 分页获取图片信息--封装
     Page<PictureVO> getPictureVOPage(Page<Picture> picturePage, HttpServletRequest request);
+
+    // 图片审核
+    void reviewPicture(PictureReviewRequest pictureReviewRequest, User LoginUser);
+
+    // 填充审核参数
+    void fillReviewPicture(Picture picture, User LoginUser);
 }

@@ -13,6 +13,7 @@ import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.model.dto.picture.*;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.User;
+import com.atg.springbootinit.model.enums.PictureReviewStatusEnum;
 import com.atg.springbootinit.model.vo.PictureVO;
 import com.atg.springbootinit.service.PictureService;
 import com.atg.springbootinit.service.UserService;
@@ -52,7 +53,7 @@ public class PictureController {
      * @return
      */
     @PostMapping("/upload")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+//    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile,
                                                  PictureUploadRequest pictureUploadRequest,
                                                  HttpServletRequest request){
@@ -110,6 +111,10 @@ public class PictureController {
         if (oldPicture == null){
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
+        // 补充审核信息
+        User loginUser = userService.getLoginUser(request);
+        pictureService.fillReviewPicture(picture, loginUser);
+
         boolean b = pictureService.updateById(picture);
         ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
         return  ResultUtils.success(true);
@@ -168,6 +173,8 @@ public class PictureController {
         int current = pictureQueryRequest.getCurrent();
         int pageSize = pictureQueryRequest.getPageSize();
         ThrowUtils.throwIf(pageSize > 20, ErrorCode.PARAMS_ERROR);
+        // 查看审核的数据
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
         Page<Picture> picturePage = pictureService.page(new Page<>(current, pageSize), pictureService.getQueryWrapper(pictureQueryRequest));
         Page<PictureVO> pictureVOPage = pictureService.getPictureVOPage(picturePage, request);
         return ResultUtils.success(pictureVOPage);
@@ -194,6 +201,8 @@ public class PictureController {
         if (!loginUser.getId().equals(oldPicture.getUserId()) || !userService.isAdmin(request)){
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
+        // 补充审核信息
+        pictureService.fillReviewPicture(picture, loginUser);
         boolean result = pictureService.updateById(picture);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
@@ -212,5 +221,17 @@ public class PictureController {
 
     }
 
+    // 图片审核
+    @PostMapping("/review")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewRequest pictureReviewRequest, HttpServletRequest request){
+
+        if (pictureReviewRequest == null || pictureReviewRequest.getId() <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        pictureService.reviewPicture(pictureReviewRequest, loginUser);
+        return ResultUtils.success(true);
+    }
 
 }
