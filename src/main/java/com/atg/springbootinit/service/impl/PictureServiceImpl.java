@@ -9,6 +9,9 @@ import com.atg.springbootinit.constant.CommonConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.manager.FileManager;
+import com.atg.springbootinit.manager.upload.FilePictureUpload;
+import com.atg.springbootinit.manager.upload.PictureUploadTemplate;
+import com.atg.springbootinit.manager.upload.UrlPictureUpload;
 import com.atg.springbootinit.mapper.PictureMapper;
 import com.atg.springbootinit.model.dto.file.UploadPictureRequest;
 import com.atg.springbootinit.model.dto.picture.PictureQueryRequest;
@@ -48,6 +51,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     @Resource
     private FileManager fileManager;
     @Resource
+    private FilePictureUpload filePictureUpload;
+
+    @Resource
+    private UrlPictureUpload urlPictureUpload;
+    @Resource
     private UserService userService;
 
     @Override
@@ -72,13 +80,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     /**
      * 上传图片
      *
-     * @param multipartFile
+     * @param inputSource
      * @param LoginUser
      * @param pictureUploadRequest
      * @return
      */
     @Override
-    public PictureVO uploadPicture(MultipartFile multipartFile, User LoginUser, PictureUploadRequest pictureUploadRequest) {
+    public PictureVO uploadPicture(Object inputSource, User LoginUser, PictureUploadRequest pictureUploadRequest) {
         // 1. 校验用户是否登录
         if (LoginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
@@ -102,7 +110,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
         // 4. 上传图片并获取上传结果
         String uploadPathPrefix = String.format("public/%s", LoginUser.getId());
-        UploadPictureRequest uploadPictureRequest = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
+        // 根据传入的格式进行区分什么什么上传
+        PictureUploadTemplate picUploadTemplate = filePictureUpload;
+        if (inputSource instanceof String){
+            picUploadTemplate = urlPictureUpload;
+        }
+        UploadPictureRequest uploadPictureRequest = picUploadTemplate.uploadPicture(inputSource, uploadPathPrefix);
+
         // 5. 构造图片实体对象并设置相关属性
         Picture picture = new Picture();
         picture.setUrl(uploadPictureRequest.getUrl());
