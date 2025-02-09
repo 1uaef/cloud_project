@@ -2,6 +2,7 @@ package com.atg.springbootinit.service;
 
 import com.atg.springbootinit.model.dto.picture.PictureQueryRequest;
 import com.atg.springbootinit.model.dto.picture.PictureReviewRequest;
+import com.atg.springbootinit.model.dto.picture.PictureUploadByBatchRequest;
 import com.atg.springbootinit.model.dto.picture.PictureUploadRequest;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.User;
@@ -43,4 +44,7 @@ public interface PictureService extends IService<Picture> {
 
     // 填充审核参数
     void fillReviewPicture(Picture picture, User LoginUser);
+
+    // 批量抓取图片
+    Integer uploadBatchPicture(PictureUploadByBatchRequest pictureUploadByBatchRequest, User LoginUser);
 }
