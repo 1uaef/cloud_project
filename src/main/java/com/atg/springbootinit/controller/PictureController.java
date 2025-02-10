@@ -126,10 +126,12 @@ public class PictureController {
         if (!loginUser.getId().equals(oldPicture.getUserId()) && !userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
+        pictureService.deletePicture(oldPicture);
         boolean result = pictureService.removeById(deleteRequestId);
         if (!result) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
         }
+
         return ResultUtils.success(true);
     }
 

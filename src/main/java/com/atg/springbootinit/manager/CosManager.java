@@ -2,6 +2,8 @@ package com.atg.springbootinit.manager;
 
 import cn.hutool.core.io.FileUtil;
 import com.qcloud.cos.COSClient;
+import com.qcloud.cos.model.COSObject;
+import com.qcloud.cos.model.GetObjectRequest;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 import com.atg.springbootinit.config.CosClientConfig;
@@ -33,11 +35,11 @@ public class CosManager {
      * @param localFilePath 本地文件路径
      * @return
      */
-    public PutObjectResult putObject(String key, String localFilePath) {
-        PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key,
-                new File(localFilePath));
-        return cosClient.putObject(putObjectRequest);
-    }
+//    public PutObjectResult putObject(String key, String localFilePath) {
+//        PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key,
+//                new File(localFilePath));
+//        return cosClient.putObject(putObjectRequest);
+//    }
 
     /**
      * 上传对象
@@ -50,6 +52,15 @@ public class CosManager {
         PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key,
                 file);
         return cosClient.putObject(putObjectRequest);
+    }
+    /**
+     * 下载对象
+     *
+     * @param key 唯一键
+     */
+    public COSObject getObject(String key) {
+        GetObjectRequest getObjectRequest = new GetObjectRequest(cosClientConfig.getBucket(), key);
+        return cosClient.getObject(getObjectRequest);
     }
 
     /**
@@ -118,5 +129,10 @@ public class CosManager {
 
         // 执行上传操作
         return cosClient.putObject(putObjectRequest);
+    }
+
+    // 删除对象
+    public void deleteObject(String key) {
+        cosClient.deleteObject(cosClientConfig.getBucket(), key);
     }
 }

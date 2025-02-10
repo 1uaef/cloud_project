@@ -8,6 +8,7 @@ import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.constant.CommonConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
+import com.atg.springbootinit.manager.CosManager;
 import com.atg.springbootinit.manager.FileManager;
 import com.atg.springbootinit.manager.upload.FilePictureUpload;
 import com.atg.springbootinit.manager.upload.PictureUploadTemplate;
@@ -36,6 +37,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -66,6 +69,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     private UrlPictureUpload urlPictureUpload;
     @Resource
     private UserService userService;
+    @Autowired
+    private CosManager cosManager;
 
     @Override
     public void validPicture(Picture picture) {
@@ -369,6 +374,24 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         // 上传数据库
         return uploadCount;
+    }
+
+    @Async
+    @Override
+    public void deletePicture(Picture oldPicture) {
+        // 判断删除图片是否有多个位置引用
+        String oldPictureUrl = oldPicture.getUrl();
+        Long count = this.lambdaQuery().eq(Picture::getUrl, oldPictureUrl).count();
+
+        ThrowUtils.throwIf(count > 1, ErrorCode.OPERATION_ERROR, "图片被引用，无法删除");
+
+        // 删除图片
+        cosManager.deleteObject(oldPictureUrl);
+        // 删除缩列图片
+        String thumbnailUrl = oldPicture.getThumbnailUrl();
+        if (StringUtils.isNotBlank(thumbnailUrl)) {
+            cosManager.deleteObject(thumbnailUrl);
+        }
     }
 
 
