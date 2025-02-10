@@ -128,7 +128,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         // 5. 构造图片实体对象并设置相关属性
         Picture picture = new Picture();
-
+        picture.setUrl(uploadPictureRequest.getUrl());
         picture.setName(uploadPictureRequest.getPicName());
         picture.setPicSize(uploadPictureRequest.getPicSize());
         picture.setPicWidth(uploadPictureRequest.getPicWidth());
@@ -300,7 +300,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
     @Override
-    public Integer uploadBatchPicture(PictureUploadByBatchRequest pictureUploadByBatchRequest, User LoginUser) {
+    public Integer uploadBatchPicture(PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser) {
         // 1. 校验参数
         String searchText = pictureUploadByBatchRequest.getSearchText();
         Integer count = pictureUploadByBatchRequest.getCount();
@@ -310,28 +310,39 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (count > 30) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "最多抓取30张图片");
         }
+
         // 2. 抓取图片
-        // 2.1 解析URL
         String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&mmasync=1", searchText);
         Document document = null;
         try {
-            document = Jsoup.connect(fetchUrl).get();
+            // 设置User-Agent模拟浏览器请求
+            document = Jsoup.connect(fetchUrl)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                    .get();
         } catch (IOException e) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "页面获取失败");
         }
+
         Element element = document.getElementsByClass("dgControl").first();
         if (element == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "解析页面失败");
         }
+
         Elements imgElementList = element.select("img.mimg");
-        // 获取图片信息
         int uploadCount = 0;
-        for (Element imgElement : imgElementList){
-            String imgUrl = imgElement.attr("src");
-            if (StringUtils.isBlank(imgUrl)){
+
+        for (Element imgElement : imgElementList) {
+            // 优先使用data-src属性，如果不存在则使用src属性
+            String imgUrl = imgElement.attr("data-src");
+            if (StringUtils.isBlank(imgUrl)) {
+                imgUrl = imgElement.attr("src");
+            }
+
+            if (StringUtils.isBlank(imgUrl)) {
                 log.info("当前链接为空，已跳过: {}", imgUrl);
                 continue;
             }
+
             // 处理图片上传地址，防止转义
             int indexOf = imgUrl.indexOf("?");
             if (indexOf != -1) {
@@ -340,19 +351,21 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
             PictureUploadRequest pictureUploadRequest = new PictureUploadRequest();
             pictureUploadRequest.setFileUrl(imgUrl);
+
             // 上传图片
             try {
-                PictureVO pictureVO = this.uploadPicture(imgUrl, LoginUser, pictureUploadRequest);
-                if (pictureVO != null) {
-                    uploadCount++;
-                }
-            }catch (Exception e){
-                log.info("图片上传失败，已跳过: {}", imgUrl);
+                PictureVO pictureVO = this.uploadPicture(imgUrl, loginUser, pictureUploadRequest);
+                log.info("图片上传成功: {}", pictureVO.getUrl());
+                uploadCount++;
+            } catch (Exception e) {
+                log.error("图片上传失败，已跳过: {}", imgUrl, e);
             }
-            if (uploadCount >= count){
+
+            if (uploadCount >= count) {
                 break;
             }
         }
+
         // 上传数据库
         return uploadCount;
     }
