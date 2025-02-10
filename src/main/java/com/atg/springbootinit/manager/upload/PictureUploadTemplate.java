@@ -1,6 +1,7 @@
 package com.atg.springbootinit.manager.upload;
 
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -13,7 +14,9 @@ import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.manager.CosManager;
 import com.atg.springbootinit.model.dto.file.UploadPictureRequest;
 import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
+import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /*
 author: atg
@@ -73,7 +77,18 @@ public abstract class PictureUploadTemplate {
             PutObjectResult putObjectResult = cosManager.putPictureObject(filepath, file);
             // 5. 获取图片信息
             ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
-
+            // 获取图片处理结果
+            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> objectList = processResults.getObjectList();
+            if (CollUtil.isNotEmpty(objectList)){
+                CIObject ciObject = objectList.get(0);
+                // 缩略图默认等于压缩图
+                CIObject thumbnailCiObject = ciObject;
+                if (objectList.size() >1){
+                    thumbnailCiObject = objectList.get(1);
+                }
+                return buildResult( originalFilename, ciObject,thumbnailCiObject);
+            }
             return getUploadPictureRequest(imageInfo, filepath, originalFilename, file);
 
 
@@ -84,6 +99,25 @@ public abstract class PictureUploadTemplate {
             // 6. 删除临时文件
             deleteFile(file, filepath);
         }
+    }
+
+
+    private UploadPictureRequest buildResult(String originFilename,CIObject compressedCiObject, CIObject thumbnailCiObject) {
+        UploadPictureRequest uploadPictureResult = new UploadPictureRequest();
+        int picWidth = compressedCiObject.getWidth();
+        int picHeight = compressedCiObject.getHeight();
+        double picScale = NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue();
+        uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
+        uploadPictureResult.setPicWidth(picWidth);
+        uploadPictureResult.setPicHeight(picHeight);
+        uploadPictureResult.setPicScale(picScale);
+        uploadPictureResult.setPicFormat(compressedCiObject.getFormat());
+        uploadPictureResult.setPicSize(compressedCiObject.getSize().longValue());
+        // 设置图片为压缩后的地址
+        uploadPictureResult.setUrl(FileConstant.COS_HOST + "/" + compressedCiObject.getKey());
+        // 设置缩略图为压缩前的地址
+        uploadPictureResult.setThumbnailUrl(FileConstant.COS_HOST + "/" + thumbnailCiObject.getKey());
+        return uploadPictureResult;
     }
 
     @NotNull

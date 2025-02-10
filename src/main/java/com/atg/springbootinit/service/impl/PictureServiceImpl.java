@@ -129,6 +129,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 5. 构造图片实体对象并设置相关属性
         Picture picture = new Picture();
         picture.setUrl(uploadPictureRequest.getUrl());
+        picture.setThumbnailUrl(uploadPictureRequest.getThumbnailUrl());
         picture.setName(uploadPictureRequest.getPicName());
         picture.setPicSize(uploadPictureRequest.getPicSize());
         picture.setPicWidth(uploadPictureRequest.getPicWidth());

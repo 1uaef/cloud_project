@@ -51,6 +51,10 @@ public class PictureVO implements Serializable {
      * 文件体积
      */
     private Long picSize;
+    /**
+     * 缩略图 url
+     */
+    private String thumbnailUrl;
 
     /**
      * 图片宽度

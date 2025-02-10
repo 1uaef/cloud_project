@@ -57,11 +57,17 @@ public class Picture {
      * 图片高度
      */
     private Integer picHeight;
+    /**
+     * 缩略图 url
+     */
+    private String thumbnailUrl;
 
     /**
      * 图片宽高比例
      */
     private Double picScale;
+
+
 
     /**
      * 图片格式

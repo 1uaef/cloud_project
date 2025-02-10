@@ -14,6 +14,11 @@ public class UploadPictureRequest implements Serializable {
     private String url;
 
     /**
+     * 缩略图 url
+     */
+    private String thumbnailUrl;
+
+    /**
      * 图片名称
      */
     private String picName;
@@ -42,7 +47,5 @@ public class UploadPictureRequest implements Serializable {
      * 图片格式
      */
     private String picFormat;
-
-    private static final long serialVersionUID = 1L;
 
 }
