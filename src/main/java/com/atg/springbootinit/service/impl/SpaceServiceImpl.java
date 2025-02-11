@@ -1,8 +1,5 @@
 package com.atg.springbootinit.service.impl;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import cn.hutool.core.collection.CollUtil;
@@ -26,7 +23,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.atg.springbootinit.service.SpaceService;
 import com.atg.springbootinit.mapper.SpaceMapper;
+import org.apache.ibatis.transaction.Transaction;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -42,14 +42,53 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     @Resource
     private UserService userService;
 
+    @Resource
+    private TransactionTemplate transactionTemplate;
+
 
     @Override
     public Long addSpace(SpaceAddRequest spaceAddRequest, User loginUser) {
-        // 填充参数默认值
+        // 1. 填充参数默认值
+        Space space = new Space();
+        BeanUtils.copyProperties(spaceAddRequest, space);
+        // 2. 校验参数
+
+        String spaceName = space.getSpaceName();
+        Integer spaceLevel = space.getSpaceLevel();
+        if (StrUtil.isBlank(spaceName)){
+            space.setSpaceName("默认空间");
+        }
+        if (spaceLevel == null){
+            space.setSpaceLevel(SpaceLevelEnum.COMMON.getValue());
+        }
+        // 填充容量
+        this.fillSpaceBySpaceLevel(space);
         // 校验参数
-        // 检验权限
-        // 一个用户只能创建一个空间
-        return 0L;
+        this.validSpace(space, true);
+        // 3. 检验权限
+        // 非管理员只能创建普通空间--1个
+        Long userId = loginUser.getId();
+        space.setUserId(userId);
+        if ( SpaceLevelEnum.COMMON.getValue() != space.getSpaceLevel() && !userService.isAdmin(loginUser)){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限创建指定级别的空间");
+        }
+        // 4. 一个用户只能创建一个空间
+        // 这段代码的作用是将 userId 转换为字符串，并通过 intern() 方法将其放入字符串常量池中，确保返回的字符串是唯一的。
+        String lock  = String.valueOf(userId).intern();
+        synchronized (lock){
+            Long execute = transactionTemplate.execute(status -> {
+                // 创建之前先判断--是否已经创建了空间
+                boolean exists = this.lambdaQuery().eq(Space::getUserId, userId).exists();
+                if (exists) {
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户只能创建一个空间");
+                }
+                // 创建
+                boolean result = save(space);
+                ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "保存空间到数据库失败");
+                return space.getId();
+            });
+            return Optional.ofNullable(execute).orElse(-1L);
+        }
     }
 
     @Override
