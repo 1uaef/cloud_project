@@ -11,6 +11,7 @@ import cn.hutool.core.util.StrUtil;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
+import com.atg.springbootinit.model.dto.space.SpaceAddRequest;
 import com.atg.springbootinit.model.dto.space.SpaceQueryRequest;
 import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.Space;
@@ -41,6 +42,15 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     @Resource
     private UserService userService;
 
+
+    @Override
+    public Long addSpace(SpaceAddRequest spaceAddRequest, User loginUser) {
+        // 填充参数默认值
+        // 校验参数
+        // 检验权限
+        // 一个用户只能创建一个空间
+        return 0L;
+    }
 
     @Override
     public void validSpace(Space space,boolean add) {

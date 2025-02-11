@@ -1,6 +1,7 @@
 package com.atg.springbootinit.service;
 
 
+import com.atg.springbootinit.model.dto.space.SpaceAddRequest;
 import com.atg.springbootinit.model.dto.space.SpaceQueryRequest;
 import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.Space;
@@ -18,6 +19,9 @@ import javax.servlet.http.HttpServletRequest;
 * @createDate 2025-02-11 09:40:37
 */
 public interface SpaceService extends IService<Space> {
+    // 创建空间
+    Long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
+
     // 校验空间 --- 修改 / 更新
     void validSpace(Space space, boolean add);
 
@@ -33,10 +37,11 @@ public interface SpaceService extends IService<Space> {
     Page<SpaceVO> getSpaceVOPage(Page<Space> spacePage, HttpServletRequest request);
 
     /**
-     * 根据空间级别填充空间对象
+     * 根据空间级别---填充空间对象
      *
      * @param space
      */
     void fillSpaceBySpaceLevel(Space space);
+
 
 }
