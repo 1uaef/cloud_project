@@ -2,6 +2,7 @@ package com.atg.springbootinit.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 
+import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
@@ -11,7 +12,7 @@ import lombok.Data;
  */
 @TableName(value ="picture")
 @Data
-public class Picture {
+public class Picture implements Serializable {
     /**
      * id
      */
@@ -27,6 +28,10 @@ public class Picture {
      * 图片名称
      */
     private String name;
+    /**
+     * 空间Id
+     */
+    private Long spaceId; //
 
     /**
      * 简介
@@ -119,4 +124,7 @@ public class Picture {
      */
     @TableLogic
     private Integer isDelete;
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }
