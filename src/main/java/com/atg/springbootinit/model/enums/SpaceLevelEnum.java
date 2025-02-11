@@ -4,9 +4,6 @@ package com.atg.springbootinit.model.enums;
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /*
 author: atg
 time: 2025/2/11 10:08
@@ -28,6 +25,7 @@ public enum SpaceLevelEnum {
         this.maxCount = maxCount;
         this.maxSize = maxSize;
     }
+
     /**
      * 根据 value 获取枚举
      */

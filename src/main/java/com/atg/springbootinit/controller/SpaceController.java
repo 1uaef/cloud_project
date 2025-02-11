@@ -9,12 +9,10 @@ import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
-import com.atg.springbootinit.model.dto.space.SpaceAddRequest;
-import com.atg.springbootinit.model.dto.space.SpaceEditRequest;
-import com.atg.springbootinit.model.dto.space.SpaceQueryRequest;
-import com.atg.springbootinit.model.dto.space.SpaceUpdateRequest;
+import com.atg.springbootinit.model.dto.space.*;
 import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.User;
+import com.atg.springbootinit.model.enums.SpaceLevelEnum;
 import com.atg.springbootinit.model.vo.SpaceVO;
 import com.atg.springbootinit.service.SpaceService;
 import com.atg.springbootinit.service.UserService;
@@ -25,7 +23,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Array;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /*
 author: atg
@@ -207,6 +209,18 @@ public class SpaceController {
         return ResultUtils.success(true);
     }
 
+    // 获取空间列表
+    @GetMapping("/list/level")
+    public BaseResponse<List<SpaceLevel>> getSpaceLevelList() {
+        List<SpaceLevel> spaceLevelList = Arrays.stream(SpaceLevelEnum.values())
+                .map(spaceLevelEnum -> new SpaceLevel(
+                        spaceLevelEnum.getValue(),
+                        spaceLevelEnum.getText(),
+                        spaceLevelEnum.getMaxCount(),
+                        spaceLevelEnum.getMaxSize())).collect(Collectors.toList());
 
+        return ResultUtils.success(spaceLevelList);
+
+    }
 
 }
