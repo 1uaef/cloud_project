@@ -13,6 +13,7 @@ time: 2025/2/5 19:27
 public class PictureUploadRequest implements Serializable {
 
     private Long id;
+
     // 图片url
     private String fileUrl;
 
@@ -20,6 +21,11 @@ public class PictureUploadRequest implements Serializable {
      * 图片名称
      */
     private String picName;
+
+    /**
+     * 空间id
+     */
+    private Long spaceId;
 
 
     private static final long serialVersionUID = 1L;

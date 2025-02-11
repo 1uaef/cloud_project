@@ -1,9 +1,6 @@
 package com.atg.springbootinit.service;
 
-import com.atg.springbootinit.model.dto.picture.PictureQueryRequest;
-import com.atg.springbootinit.model.dto.picture.PictureReviewRequest;
-import com.atg.springbootinit.model.dto.picture.PictureUploadByBatchRequest;
-import com.atg.springbootinit.model.dto.picture.PictureUploadRequest;
+import com.atg.springbootinit.model.dto.picture.*;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.vo.PictureVO;
@@ -49,6 +46,15 @@ public interface PictureService extends IService<Picture> {
     Integer uploadBatchPicture(PictureUploadByBatchRequest pictureUploadByBatchRequest, User LoginUser);
 
     // 删除图片
-    void deletePicture(Picture oldPicture);
+    void deletePicture(Long pictureId, User LoginUser);
+
+    void clearPicture(Picture oldPicture);
+
+    // 编辑图片
+    void editPicture(PictureEditRequest pictureEditRequest, User LoginUser);
+
+
+    // 检验空间图片的权限
+    void checkPictureAuthority(Picture picture, User LoginUser);
 
 }
