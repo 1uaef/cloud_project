@@ -281,7 +281,7 @@ public class PictureController {
 
         // 从本地缓存中查找
         String Local_Cache = LOCAL_CACHE.getIfPresent(cacheKey);
-        if (StringUtils.isNotBlank(Local_Cache)) {
+        if (Local_Cache != null && !Local_Cache.isEmpty()) {
             // 命中本地缓存
             Page<PictureVO> pictureVO = JSONUtil.toBean(Local_Cache, Page.class);
             return ResultUtils.success(pictureVO);

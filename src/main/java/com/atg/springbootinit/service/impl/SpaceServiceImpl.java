@@ -97,21 +97,23 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         String spaceName = space.getSpaceName();
         Integer spaceLevel = space.getSpaceLevel();
         SpaceLevelEnum enumByValue = SpaceLevelEnum.getEnumByValue(spaceLevel);
-        
+        // 创建时进行校验
         if (add){
-            if (StrUtil.isNotBlank(spaceName)) {
+            if (StrUtil.isBlank(spaceName)) {
                 throw new BusinessException( ErrorCode.PARAMS_ERROR, "空间名称不能为空");
             }
             if (enumByValue == null) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间等级错误");
             }
         }
-        
-        if (StrUtil.isNotBlank(spaceName)) {
-            throw new BusinessException( ErrorCode.PARAMS_ERROR, "空间名称不能为空");
+
+        // 修改数据时，空间名称进行校验
+        if (StrUtil.isNotBlank(spaceName) && spaceName.length() > 30) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间名称过长");
         }
-        if (enumByValue == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间等级错误");
+        // 修改数据时，空间级别进行校验
+        if (spaceLevel != null && enumByValue == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间级别不存在");
         }
         
     }
@@ -178,8 +180,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         queryWrapper.eq(ObjUtil.isNotEmpty(userId), "userId", userId);
         queryWrapper.like(StrUtil.isNotBlank(spaceName), "spaceName", spaceName);
         queryWrapper.eq(ObjUtil.isNotEmpty(spaceLevel), "spaceLevel", spaceLevel);
-        queryWrapper.eq(ObjUtil.isNotEmpty(sortField), sortField, sortOrder);
-        queryWrapper.orderBy(StrUtil.isNotEmpty(sortOrder), sortOrder.equals("ascend"), sortField);
+        // 排序
+        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
         return queryWrapper;
     }
 
