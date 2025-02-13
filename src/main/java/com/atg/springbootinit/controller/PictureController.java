@@ -2,9 +2,13 @@ package com.atg.springbootinit.controller;
 
 
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.excel.util.StringUtils;
 import com.atg.springbootinit.annotation.AuthCheck;
+import com.atg.springbootinit.apiSearchPicture.ImageSearchFacade;
+import com.atg.springbootinit.apiSearchPicture.model.ImageSearchResult;
+import com.atg.springbootinit.apiSearchPicture.model.SearchPictureByPicture;
 import com.atg.springbootinit.common.BaseResponse;
 import com.atg.springbootinit.common.DeleteRequest;
 import com.atg.springbootinit.common.ErrorCode;
@@ -338,6 +342,23 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
         pictureService.reviewPicture(pictureReviewRequest, loginUser);
         return ResultUtils.success(true);
+    }
+
+    // 以图用图--收索
+    @PostMapping("/search/picture")
+    public BaseResponse<List<ImageSearchResult>> searchPictureByPicture(@RequestBody SearchPictureByPicture searchPictureByPicture, HttpServletRequest request) {
+        ThrowUtils.throwIf(searchPictureByPicture == null, ErrorCode.PARAMS_ERROR);
+        Long pictureId = searchPictureByPicture.getPictureId();
+        if (pictureId <= 0 || pictureId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Picture oldPicture = pictureService.getById(pictureId);
+        if (oldPicture == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        List<ImageSearchResult> imageSearchResults = ImageSearchFacade.searchImage(oldPicture.getUrl());
+        return ResultUtils.success(imageSearchResults);
+
     }
 
 }

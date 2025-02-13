@@ -235,6 +235,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         String reviewMessage = pictureQueryRequest.getReviewMessage();
         Long reviewerId = pictureQueryRequest.getReviewerId();
 
+        // 根据开始时间，结束时间进行收索
+        Date startEditTime = pictureQueryRequest.getStartEditTime();
+        Date endEditTime = pictureQueryRequest.getEndEditTime();
+
         // 收索
         if (StrUtil.isNotBlank(searchText)) {
             queryWrapper.and(qw -> qw.like("name", searchText).or().like("introduction", searchText));
@@ -254,6 +258,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.like(StrUtil.isNotBlank(introduction), "introduction", introduction);
         queryWrapper.like(StrUtil.isNotBlank(category), "category", category);
         queryWrapper.like(StrUtil.isNotBlank(picFormat), "picFormat", picFormat);
+        // 根据时间查询
+        queryWrapper.ge(ObjUtil.isNotEmpty(startEditTime), "editTime", startEditTime);
+        queryWrapper.lt(ObjUtil.isNotEmpty(endEditTime), "editTime", endEditTime);
+
 
         queryWrapper.isNull(nullSpaceId, "spaceId");
         // 数组查询 --tags
