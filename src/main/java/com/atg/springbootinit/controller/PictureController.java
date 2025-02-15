@@ -360,5 +360,16 @@ public class PictureController {
         return ResultUtils.success(imageSearchResults);
 
     }
+    // 批量更新
+    @PostMapping("/batch/edit")
+    public BaseResponse<Boolean> batchEditPicture(@RequestBody PictureBatchByEditRequest pictureBatchByEditRequest, HttpServletRequest request) {
+
+        if (pictureBatchByEditRequest == null || pictureBatchByEditRequest.getPictureIdList() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        pictureService.batchEditPicture(pictureBatchByEditRequest, loginUser);
+        return ResultUtils.success(true);
+    }
 
 }

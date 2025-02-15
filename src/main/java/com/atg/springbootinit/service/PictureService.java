@@ -57,4 +57,7 @@ public interface PictureService extends IService<Picture> {
     // 检验空间图片的权限
     void checkPictureAuthority(Picture picture, User LoginUser);
 
+    // 批量编辑图片
+    void batchEditPicture(PictureBatchByEditRequest pictureBatchEditRequest, User LoginUser);
+
 }

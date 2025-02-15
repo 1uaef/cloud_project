@@ -533,6 +533,62 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
     }
 
+    @Override
+    public void batchEditPicture(PictureBatchByEditRequest pictureBatchByEditRequest, User LoginUser) {
+        // 1. 获取值
+        Long spaceId = pictureBatchByEditRequest.getSpaceId();
+        List<Long> pictureIdList = pictureBatchByEditRequest.getPictureIdList();
+        String category = pictureBatchByEditRequest.getCategory();
+        List<String> tags = pictureBatchByEditRequest.getTags();
+        String nameRule = pictureBatchByEditRequest.getNameRule();
+        // 2. 数据校验
+        ThrowUtils.throwIf(CollectionUtils.isEmpty(pictureIdList), ErrorCode.PARAMS_ERROR, "图片ID列表不能为空");
+        ThrowUtils.throwIf(spaceId == null || spaceId <= 0, ErrorCode.PARAMS_ERROR, "空间ID不能为空");
+        ThrowUtils.throwIf(LoginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        // 3. 查询指定空间的图片ID列表
+        List<Picture> pictureList = this.lambdaQuery()
+                .eq(Picture::getSpaceId, spaceId)
+                .in(Picture::getId, pictureIdList)
+                .list();
+        ThrowUtils.throwIf(CollectionUtils.isEmpty(pictureList), ErrorCode.NOT_FOUND_ERROR, "指定空间下没有图片");
+
+        // 更新 分类和标签
+        for (Picture picture : pictureList) {
+            if (StringUtils.isNotBlank(category)){
+
+                picture.setCategory(category);
+            }
+            if (CollUtil.isNotEmpty(tags)){
+
+                picture.setTags(JSONUtil.toJsonStr(tags));
+            }
+
+
+        }
+
+        // 批量重命名
+        if (StringUtils.isNotBlank(nameRule)) {
+            fillPictureWithNameRule(pictureList, nameRule);
+        }
+        // 4. 更新图片信息
+        boolean result = this.updateBatchById(pictureList);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片信息更新失败");
+
+    }
+
+    private void fillPictureWithNameRule(List<Picture> pictureList, String nameRule) {
+        long count  = 1;
+        try{
+            for (Picture picture : pictureList) {
+                String name = nameRule.replaceAll("\\{序号}", String.valueOf(count++));
+                picture.setName(name);
+
+            }
+        }catch(Exception e){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "重命名规则错误");
+        }
+    }
+
 
 }
 
