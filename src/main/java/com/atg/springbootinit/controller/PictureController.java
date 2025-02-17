@@ -2,18 +2,19 @@ package com.atg.springbootinit.controller;
 
 
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.excel.util.StringUtils;
 import com.atg.springbootinit.annotation.AuthCheck;
-import com.atg.springbootinit.apiSearchPicture.ImageSearchFacade;
-import com.atg.springbootinit.apiSearchPicture.model.ImageSearchResult;
-import com.atg.springbootinit.apiSearchPicture.model.SearchPictureByPicture;
+import com.atg.springbootinit.api.aliyuAi.AliYunAiApi;
+import com.atg.springbootinit.api.aliyuAi.model.CreateOutPaintingTaskResponse;
+import com.atg.springbootinit.api.aliyuAi.model.GetOutPaintingTaskResponse;
+import com.atg.springbootinit.api.apiSearchPicture.ImageSearchFacade;
+import com.atg.springbootinit.api.apiSearchPicture.model.ImageSearchResult;
+import com.atg.springbootinit.api.apiSearchPicture.model.SearchPictureByPicture;
 import com.atg.springbootinit.common.BaseResponse;
 import com.atg.springbootinit.common.DeleteRequest;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.common.ResultUtils;
-import com.atg.springbootinit.config.RedisConfig;
 import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
@@ -40,10 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -64,6 +62,9 @@ public class PictureController {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private AliYunAiApi aliYunAiApi;
 
 
     private final Cache<String, String> LOCAL_CACHE =
@@ -370,6 +371,25 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
         pictureService.batchEditPicture(pictureBatchByEditRequest, loginUser);
         return ResultUtils.success(true);
+    }
+    // ai扩图
+    @PostMapping("/create/outpainting")
+    public BaseResponse<CreateOutPaintingTaskResponse> createOutPaintingTask(@RequestBody CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, HttpServletRequest request) {
+        if (createPictureOutPaintingTaskRequest == null || createPictureOutPaintingTaskRequest.getPictureId() == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        CreateOutPaintingTaskResponse outPaintingTask = pictureService.createOutPaintingTask(createPictureOutPaintingTaskRequest, loginUser);
+        return ResultUtils.success(outPaintingTask);
+    }
+    // 查询ai扩图任务
+    @GetMapping("/get/outpainting")
+    public BaseResponse<GetOutPaintingTaskResponse> getOutPaintingTask(String taskId) {
+        if (StringUtils.isBlank(taskId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        GetOutPaintingTaskResponse outPaintingTask = aliYunAiApi.getOutPaintingTask(taskId);
+        return ResultUtils.success(outPaintingTask);
     }
 
 }

@@ -1,7 +1,7 @@
-package com.atg.springbootinit.apiSearchPicture.execute;
+package com.atg.springbootinit.api.apiSearchPicture.execute;
 
 
-import com.atg.springbootinit.apiSearchPicture.model.ImageSearchResult;
+import com.atg.springbootinit.api.apiSearchPicture.model.ImageSearchResult;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;

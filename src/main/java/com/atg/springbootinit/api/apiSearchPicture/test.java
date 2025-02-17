@@ -1,4 +1,4 @@
-package com.atg.springbootinit.apiSearchPicture;
+package com.atg.springbootinit.api.apiSearchPicture;
 
 
 import cn.hutool.core.util.URLUtil;

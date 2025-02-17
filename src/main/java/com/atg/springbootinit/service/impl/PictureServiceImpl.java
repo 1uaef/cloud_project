@@ -1,10 +1,15 @@
 package com.atg.springbootinit.service.impl;
+import com.atg.springbootinit.api.aliyuAi.AliYunAiApi;
+import com.atg.springbootinit.api.aliyuAi.model.CreateOutPaintingTaskRequest.Parameters;
+import com.atg.springbootinit.api.aliyuAi.model.CreateOutPaintingTaskRequest.Input;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.atg.springbootinit.api.aliyuAi.model.CreateOutPaintingTaskRequest;
+import com.atg.springbootinit.api.aliyuAi.model.CreateOutPaintingTaskResponse;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.constant.CommonConstant;
 import com.atg.springbootinit.exception.BusinessException;
@@ -46,10 +51,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -76,6 +78,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     private TransactionTemplate transactionTemplate;
     @Autowired
     private CosManager cosManager;
+    @Resource
+    private AliYunAiApi aliYunAiApi;
 
     @Override
     public void validPicture(Picture picture) {
@@ -188,7 +192,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             boolean isSuccess = this.saveOrUpdate(picture);
             ThrowUtils.throwIf(!isSuccess, ErrorCode.OPERATION_ERROR, "图片上传失败");
             // 更新空间信息
-            if (finalPictureId != null){
+            if (finalPictureId != null) {
                 boolean update = spaceService.lambdaUpdate().eq(Space::getId, finalPictureId)
                         .setSql("totalCount = totalCount + 1")
                         .setSql("totalSize = totalSize + " + picture.getPicSize())
@@ -554,11 +558,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         // 更新 分类和标签
         for (Picture picture : pictureList) {
-            if (StringUtils.isNotBlank(category)){
+            if (StringUtils.isNotBlank(category)) {
 
                 picture.setCategory(category);
             }
-            if (CollUtil.isNotEmpty(tags)){
+            if (CollUtil.isNotEmpty(tags)) {
 
                 picture.setTags(JSONUtil.toJsonStr(tags));
             }
@@ -576,20 +580,35 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     }
 
+
     private void fillPictureWithNameRule(List<Picture> pictureList, String nameRule) {
-        long count  = 1;
-        try{
+        long count = 1;
+        try {
             for (Picture picture : pictureList) {
                 String name = nameRule.replaceAll("\\{序号}", String.valueOf(count++));
                 picture.setName(name);
 
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "重命名规则错误");
         }
     }
 
 
+    @Override
+    public CreateOutPaintingTaskResponse createOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User LoginUser) {
+        Long pictureId = createPictureOutPaintingTaskRequest.getPictureId();
+        // 权限校验
+        Picture picture = Optional.ofNullable(this.getById(pictureId)).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图片不存在"));
+        checkPictureAuthority(picture, LoginUser);
+        // 创建扩图任务
+        CreateOutPaintingTaskRequest createOutPaintingTaskRequest = new CreateOutPaintingTaskRequest();
+        CreateOutPaintingTaskRequest.Input input = new Input();
+        input.setImageUrl(picture.getUrl());
+        createOutPaintingTaskRequest.setInput(new Input());
+        createOutPaintingTaskRequest.setParameters(createPictureOutPaintingTaskRequest.getParameters());
+        return aliYunAiApi.createOutPaintingTask(createOutPaintingTaskRequest);
+    }
 }
 
 

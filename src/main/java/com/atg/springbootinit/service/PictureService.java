@@ -1,5 +1,6 @@
 package com.atg.springbootinit.service;
 
+import com.atg.springbootinit.api.aliyuAi.model.CreateOutPaintingTaskResponse;
 import com.atg.springbootinit.model.dto.picture.*;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.User;
@@ -59,5 +60,8 @@ public interface PictureService extends IService<Picture> {
 
     // 批量编辑图片
     void batchEditPicture(PictureBatchByEditRequest pictureBatchEditRequest, User LoginUser);
+
+    // 创建扩图任务
+    CreateOutPaintingTaskResponse createOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User LoginUser);
 
 }

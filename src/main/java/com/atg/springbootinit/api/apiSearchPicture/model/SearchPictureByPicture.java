@@ -1,4 +1,4 @@
-package com.atg.springbootinit.apiSearchPicture.model;
+package com.atg.springbootinit.api.apiSearchPicture.model;
 
 
 import lombok.Data;
