@@ -2,14 +2,14 @@ package com.atg.springbootinit.service.impl;
 
 
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.mapper.PictureMapper;
 import com.atg.springbootinit.mapper.SpaceMapper;
-import com.atg.springbootinit.model.dto.space.analysis.SpaceAnalyzeRequest;
-import com.atg.springbootinit.model.dto.space.analysis.SpaceUsageAnalyzeRequest;
-import com.atg.springbootinit.model.dto.space.analysis.SpaceUsageAnalyzeResponse;
+import com.atg.springbootinit.model.dto.space.analysis.*;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.User;
@@ -24,6 +24,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /*
 author: atg
@@ -49,7 +52,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         boolean isQueryPublic = spaceUsageAnalyzeRequest.isQueryPublic();
         boolean isQueryAll = spaceUsageAnalyzeRequest.isQueryAll();
 
-        if (isQueryAll || isQueryPublic){
+        if (isQueryAll || isQueryPublic) {
 
             // 权限校验 ----- 空间权限校验
             checkSpaceAuthority(spaceUsageAnalyzeRequest, LoginUser);
@@ -75,9 +78,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
             spaceUsageAnalyzeResponse.setCountUsageRatio(null);
 
             return spaceUsageAnalyzeResponse;
-        }
-
-        else{
+        } else {
             ThrowUtils.throwIf(spaceId == null || spaceId <= 0, ErrorCode.PARAMS_ERROR);
             Space space = spaceService.getById(spaceId);
             ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
@@ -105,9 +106,60 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     }
 
+    @Override
+    public List<SpaceCategoryAnalyzeResponse> analyzeSpaceCategory(SpaceCategoryAnalyzeRequest spaceCategoryAnalyzeRequest, User LoginUser) {
+        // 1. 校验参数
+        ThrowUtils.throwIf(spaceCategoryAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        // 2. 检查权限
+        checkSpaceAuthority(spaceCategoryAnalyzeRequest, LoginUser);
+        // 3. 构造查询条件
 
+        QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+        fillAnalyzeQueryWrapper(spaceCategoryAnalyzeRequest, queryWrapper);
+        // 分组查询 --- mybatisplus-- 可以先编写SQL查询结果进行测试
+        queryWrapper.select("category","count(*) as count","sum(picSize) as totalSize").groupBy("category");
+        // 4. 查询 --- 查询结果中获取值
+        List<SpaceCategoryAnalyzeResponse> collect = pictureService.getBaseMapper().selectMaps(queryWrapper)
+                .stream()
+                .map(result -> {
+                    String category = (String) result.get("category");
+                    Long count = ((Number) result.get("count")).longValue();
+                    Long totalSize = (Long) result.get("totalSize");
+                    return new SpaceCategoryAnalyzeResponse(category, count, totalSize);
+                })
+                .collect(Collectors.toList());
+        return collect;
 
+    }
 
+    @Override
+    public List<SpaceTagAnalyzeResponse> analyzeSpaceTag(SpaceTagAnalyzeRequest spaceTagAnalyzeRequest, User LoginUser) {
+        ThrowUtils.throwIf(spaceTagAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        checkSpaceAuthority(spaceTagAnalyzeRequest, LoginUser);
+        QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("tags");
+        //使用 queryWrapper 查询所有图片的 tags 字段。
+        //调用 pictureService.getBaseMapper().selectObjs(queryWrapper) 获取查询结果。
+        //将查询结果过滤掉空值，并转换为字符串列表
+        List<String> tagJsonCollect = pictureService.getBaseMapper().selectObjs(queryWrapper)
+                .stream().filter(ObjectUtil::isNotNull)
+                .map(Object::toString)
+                .collect(Collectors.toList());
+
+        // 统计标签个数
+
+//        将 tagJsonCollect 中的每个标签字符串解析为列表。
+//        使用流式处理将所有标签展平为一个单一的流。
+//        对每个标签进行分组并计数，最终生成一个 Map<String, Long>，键为标签，值为该标签出现的次数
+        Map<String, Long> tagCountMap = tagJsonCollect.stream()
+                .flatMap(tag -> JSONUtil.toList(tag, String.class).stream())
+                .collect(Collectors.groupingBy(tag -> tag, Collectors.counting()));
+
+        return tagCountMap.entrySet().stream()
+                .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
+                .map(entry -> new SpaceTagAnalyzeResponse(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
 
 
     /**
@@ -144,20 +196,20 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
     private void fillAnalyzeQueryWrapper(SpaceAnalyzeRequest spaceAnalyzeRequest, QueryWrapper<Picture> queryWrapper) {
         // 全空间分析
         boolean queryAll = spaceAnalyzeRequest.isQueryAll();
-        if (queryAll){
-            queryWrapper.lambda().eq(Picture::getIsDelete,0);
+        if (queryAll) {
+            queryWrapper.lambda().eq(Picture::getIsDelete, 0);
 //            return;
         }
         // 分析公共图片
         boolean queryPublic = spaceAnalyzeRequest.isQueryPublic();
-        if (queryPublic){
+        if (queryPublic) {
             queryWrapper.isNull("spaceId");
         }
 
         // 根据ID分析某个空间
         Long spaceId = spaceAnalyzeRequest.getSpaceId();
-        if (spaceId != null){
-            queryWrapper.eq("spaceId",spaceId);
+        if (spaceId != null) {
+            queryWrapper.eq("spaceId", spaceId);
             return;
         }
         throw new BusinessException(ErrorCode.PARAMS_ERROR, "没有指定特定的空间");
