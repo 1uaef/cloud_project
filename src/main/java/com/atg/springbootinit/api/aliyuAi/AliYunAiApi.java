@@ -65,7 +65,8 @@ public class AliYunAiApi {
 //        curl -X GET \
 //        --header "Authorization: Bearer $DASHSCOPE_API_KEY" \
 //        https://dashscope.aliyuncs.com/api/v1/tasks/86ecf553-d340-4e21-xxxxxxxxx
-        HttpRequest httpRequest = HttpRequest.get(String.format(GET_OUT_PAINTING_TASK_URL, taskId))
+        String url = String.format(GET_OUT_PAINTING_TASK_URL, taskId);
+        HttpRequest httpRequest = HttpRequest.get(url)
                 .header("Authorization", "Bearer " + apiKeyId);
         // 处理响应
 
@@ -75,9 +76,6 @@ public class AliYunAiApi {
             }
             // 创建成功之后--进行响应
             GetOutPaintingTaskResponse getOutPaintingTaskResponse = JSONUtil.toBean(httpResponse.body(), GetOutPaintingTaskResponse.class);
-            if (getOutPaintingTaskResponse.getRequestId()!= null ){
-                throw new BusinessException(ErrorCode.OPERATION_ERROR, "获取任务结果失败");
-            }
             return getOutPaintingTaskResponse;
         }
     }

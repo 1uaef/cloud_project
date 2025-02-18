@@ -603,9 +603,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         checkPictureAuthority(picture, LoginUser);
         // 创建扩图任务
         CreateOutPaintingTaskRequest createOutPaintingTaskRequest = new CreateOutPaintingTaskRequest();
-        CreateOutPaintingTaskRequest.Input input = new Input();
+        CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
         input.setImageUrl(picture.getUrl());
-        createOutPaintingTaskRequest.setInput(new Input());
+        createOutPaintingTaskRequest.setInput(input);
         createOutPaintingTaskRequest.setParameters(createPictureOutPaintingTaskRequest.getParameters());
         return aliYunAiApi.createOutPaintingTask(createOutPaintingTaskRequest);
     }

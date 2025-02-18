@@ -39,7 +39,7 @@ public class UrlPictureUpload extends PictureUploadTemplate {
         // 4. 验证UR图片 是否存在  发送 HEAD 请求以验证文件是否存在
         HttpResponse httpResponse = null;
         try {
-            httpResponse = HttpUtil.createRequest(Method.HEAD, fileUrl).execute();
+            httpResponse = HttpUtil.createRequest(Method.GET, fileUrl).execute();
             ThrowUtils.throwIf(!httpResponse.isOk(), ErrorCode.PARAMS_ERROR, "上传图片URL不存在");
             // 5. 校验图片格式
             String header = httpResponse.header("Content-Type");
@@ -50,10 +50,8 @@ public class UrlPictureUpload extends PictureUploadTemplate {
             // 6. 校验图片大小
             String pictureSize = httpResponse.header("Content-Length");
             if (StrUtil.isNotBlank(pictureSize)){
-                ThrowUtils.throwIf(Integer.parseInt(pictureSize) > 1024 * 1024 * 2, ErrorCode.PARAMS_ERROR, "上传图片大小不能超过 10M");
+                ThrowUtils.throwIf(Integer.parseInt(pictureSize) > 1024 * 1024 * 10, ErrorCode.PARAMS_ERROR, "上传图片大小不能超过 10M");
             }
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "上传图片URL不存在");
         }
         finally {
             if (httpResponse != null) {
@@ -67,6 +65,7 @@ public class UrlPictureUpload extends PictureUploadTemplate {
     @Override
     protected String getOriginalFilename(Object inputSource) {
         String fileUrl = (String) inputSource;
+//        return fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
         return FileUtil.mainName(fileUrl);
     }
 
