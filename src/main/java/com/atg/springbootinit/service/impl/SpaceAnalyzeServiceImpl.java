@@ -1,12 +1,15 @@
 package com.atg.springbootinit.service.impl;
 
 
+import cn.hutool.core.util.NumberUtil;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.mapper.PictureMapper;
 import com.atg.springbootinit.mapper.SpaceMapper;
 import com.atg.springbootinit.model.dto.space.analysis.SpaceAnalyzeRequest;
+import com.atg.springbootinit.model.dto.space.analysis.SpaceUsageAnalyzeRequest;
+import com.atg.springbootinit.model.dto.space.analysis.SpaceUsageAnalyzeResponse;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.User;
@@ -20,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /*
 author: atg
@@ -36,6 +40,74 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
     private UserService userService;
     @Resource
     private SpaceService spaceService;
+
+
+    @Override
+    public SpaceUsageAnalyzeResponse analyzeSpaceUsage(SpaceUsageAnalyzeRequest spaceUsageAnalyzeRequest, User LoginUser) {
+        // 1. 校验参数
+        Long spaceId = spaceUsageAnalyzeRequest.getSpaceId();
+        boolean isQueryPublic = spaceUsageAnalyzeRequest.isQueryPublic();
+        boolean isQueryAll = spaceUsageAnalyzeRequest.isQueryAll();
+
+        if (isQueryAll || isQueryPublic){
+
+            // 权限校验 ----- 空间权限校验
+            checkSpaceAuthority(spaceUsageAnalyzeRequest, LoginUser);
+
+            // 统计
+            QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+            queryWrapper.select("picSize");
+            fillAnalyzeQueryWrapper(spaceUsageAnalyzeRequest, queryWrapper);
+            List<Object> pictureObjects = pictureService.getBaseMapper().selectObjs(queryWrapper);
+
+            long useSize = pictureObjects.stream().mapToLong(obj -> (Long) obj).sum();
+            long size = pictureObjects.size();
+
+            // 统计空间使用情况 - 返回
+            SpaceUsageAnalyzeResponse spaceUsageAnalyzeResponse = new SpaceUsageAnalyzeResponse();
+
+            spaceUsageAnalyzeResponse.setUsedSize(useSize);
+            spaceUsageAnalyzeResponse.setUsedCount(size);
+            // 公共图库 啥都没有限制
+            spaceUsageAnalyzeResponse.setMaxSize(null);
+            spaceUsageAnalyzeResponse.setSizeUsageRatio(null);
+            spaceUsageAnalyzeResponse.setMaxCount(null);
+            spaceUsageAnalyzeResponse.setCountUsageRatio(null);
+
+            return spaceUsageAnalyzeResponse;
+        }
+
+        else{
+            ThrowUtils.throwIf(spaceId == null || spaceId <= 0, ErrorCode.PARAMS_ERROR);
+            Space space = spaceService.getById(spaceId);
+            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            if (!LoginUser.getId().equals(space.getUserId())) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
+            }
+            // 构造空间 返回结果
+            SpaceUsageAnalyzeResponse spaceUsageAnalyzeResponse = new SpaceUsageAnalyzeResponse();
+            spaceUsageAnalyzeResponse.setUsedSize(space.getTotalSize());
+            spaceUsageAnalyzeResponse.setUsedCount(space.getTotalCount());
+            spaceUsageAnalyzeResponse.setMaxSize(space.getMaxSize());
+            spaceUsageAnalyzeResponse.setMaxCount(space.getMaxCount());
+
+            // 计算比例
+            // 1. 计算空间使用 比例
+            double sizeUsageRatio = NumberUtil.round(space.getTotalSize() * 100.0 / space.getMaxSize(), 2).doubleValue();
+            // 2. 计算图片使用 比例
+            double countUsageRatio = NumberUtil.round(space.getTotalCount() * 100.0 / space.getMaxCount(), 2).doubleValue();
+            spaceUsageAnalyzeResponse.setSizeUsageRatio(sizeUsageRatio);
+            spaceUsageAnalyzeResponse.setCountUsageRatio(countUsageRatio);
+            return spaceUsageAnalyzeResponse;
+
+        }
+
+
+    }
+
+
+
+
 
 
     /**
@@ -90,4 +162,6 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         }
         throw new BusinessException(ErrorCode.PARAMS_ERROR, "没有指定特定的空间");
     }
+
+
 }
