@@ -5,7 +5,12 @@ import com.atg.springbootinit.common.BaseResponse;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.exception.ThrowUtils;
-import com.atg.springbootinit.model.dto.space.analysis.*;
+import com.atg.springbootinit.model.dto.space.analysis.req.*;
+import com.atg.springbootinit.model.dto.space.analysis.resp.SpaceCategoryAnalyzeResponse;
+import com.atg.springbootinit.model.dto.space.analysis.resp.SpaceSizeAnalyzeResponse;
+import com.atg.springbootinit.model.dto.space.analysis.resp.SpaceTagAnalyzeResponse;
+import com.atg.springbootinit.model.dto.space.analysis.resp.SpaceUsageAnalyzeResponse;
+import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.service.SpaceAnalyzeService;
 import com.atg.springbootinit.service.UserService;
@@ -15,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -70,6 +74,34 @@ public class SpaceAnalyzeController {
         User loginUser = userService.getLoginUser(request);
         List<SpaceTagAnalyzeResponse> spaceTagAnalyzeResponses = spaceAnalyzeService.analyzeSpaceTag(spaceTagAnalyzeRequest, loginUser);
         return ResultUtils.success(spaceTagAnalyzeResponses);
+
+    }
+
+    /**
+     * 获取空间大小使用状态
+     */
+    @PostMapping("/analyzeSpaceSize")
+    public BaseResponse<List<SpaceSizeAnalyzeResponse>> analyzeSpaceSize(
+            @RequestBody SpaceSizeAnalyzeRequest spaceSizeAnalyzeRequest, HttpServletRequest request) {
+
+        ThrowUtils.throwIf(spaceSizeAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        List<SpaceSizeAnalyzeResponse> spaceSizeAnalyzeResponses = spaceAnalyzeService.analyzeSpaceSize(spaceSizeAnalyzeRequest, loginUser);
+        return ResultUtils.success(spaceSizeAnalyzeResponses);
+
+    }
+
+    /**
+     * 获取空间排行
+     */
+    @PostMapping("/analyzeSpaceRank")
+    public BaseResponse<List<Space>> analyzeSpaceRank(
+            @RequestBody SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, HttpServletRequest request) {
+
+        ThrowUtils.throwIf(spaceRankAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        List<Space> spaceUsageAnalyzeResponses = spaceAnalyzeService.analyzeSpaceRank(spaceRankAnalyzeRequest, loginUser);
+        return ResultUtils.success(spaceUsageAnalyzeResponses);
 
     }
 }

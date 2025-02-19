@@ -1,17 +1,12 @@
 package com.atg.springbootinit.service;
 
 
-import com.atg.springbootinit.model.dto.space.SpaceAddRequest;
-import com.atg.springbootinit.model.dto.space.SpaceQueryRequest;
-import com.atg.springbootinit.model.dto.space.analysis.*;
+import com.atg.springbootinit.model.dto.space.analysis.req.*;
+import com.atg.springbootinit.model.dto.space.analysis.resp.*;
 import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.User;
-import com.atg.springbootinit.model.vo.SpaceVO;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -28,4 +23,15 @@ public interface SpaceAnalyzeService extends IService<Space> {
 
     // 按照标签查询使用情况
     List<SpaceTagAnalyzeResponse> analyzeSpaceTag(SpaceTagAnalyzeRequest spaceTagAnalyzeRequest, User LoginUser);
+
+    // 分段统计空间大小
+    List<SpaceSizeAnalyzeResponse> analyzeSpaceSize(SpaceSizeAnalyzeRequest spaceSizeAnalyzeRequest, User LoginUser);
+
+    // 用户行为分析 -- 在哪一个时间段 上传的数量
+    List<SpaceUserAnalyzeResponse> analyzeSpaceUser(SpaceUserAnalyzeRequest spaceUserAnalyzeRequest, User LoginUser);
+
+
+    // 获取空间使用量的排行榜
+    List<Space> analyzeSpaceRank(SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, User LoginUser);
+
 }

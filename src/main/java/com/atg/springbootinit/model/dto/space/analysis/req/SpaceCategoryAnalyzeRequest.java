@@ -1,4 +1,4 @@
-package com.atg.springbootinit.model.dto.space.analysis;
+package com.atg.springbootinit.model.dto.space.analysis.req;
 
 
 import lombok.Data;
@@ -10,5 +10,5 @@ time: 2025/2/18 18:20
 */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SpaceCategoryAnalyzeRequest extends SpaceAnalyzeRequest{
+public class SpaceCategoryAnalyzeRequest extends SpaceAnalyzeRequest {
 }

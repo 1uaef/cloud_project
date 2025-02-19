@@ -1,25 +1,28 @@
-package com.atg.springbootinit.model.dto.space.analysis;
+package com.atg.springbootinit.model.dto.space.analysis.resp;
 
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /*
 author: atg
-time: 2025/2/18 19:12
+time: 2025/2/19 14:07
 */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SpaceTagAnalyzeResponse {
-    /**
-     * 标签名称
-     */
-    private String tag;
+public class SpaceUserAnalyzeResponse implements Serializable {
 
     /**
-     * 使用次数
+     * 时间区间
+     */
+    private String period;
+
+    /**
+     * 上传数量
      */
     private Long count;
 

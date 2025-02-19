@@ -2,14 +2,15 @@ package com.atg.springbootinit.service.impl;
 
 
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
-import com.atg.springbootinit.mapper.PictureMapper;
 import com.atg.springbootinit.mapper.SpaceMapper;
-import com.atg.springbootinit.model.dto.space.analysis.*;
+import com.atg.springbootinit.model.dto.space.analysis.req.*;
+import com.atg.springbootinit.model.dto.space.analysis.resp.*;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.User;
@@ -23,9 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /*
@@ -117,7 +118,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
         fillAnalyzeQueryWrapper(spaceCategoryAnalyzeRequest, queryWrapper);
         // 分组查询 --- mybatisplus-- 可以先编写SQL查询结果进行测试
-        queryWrapper.select("category","count(*) as count","sum(picSize) as totalSize").groupBy("category");
+        queryWrapper.select("category", "count(*) as count", "sum(picSize) as totalSize").groupBy("category");
         // 4. 查询 --- 查询结果中获取值
         List<SpaceCategoryAnalyzeResponse> collect = pictureService.getBaseMapper().selectMaps(queryWrapper)
                 .stream()
@@ -159,6 +160,89 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
                 .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
                 .map(entry -> new SpaceTagAnalyzeResponse(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SpaceSizeAnalyzeResponse> analyzeSpaceSize(SpaceSizeAnalyzeRequest spaceSizeAnalyzeRequest, User LoginUser) {
+        ThrowUtils.throwIf(spaceSizeAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        checkSpaceAuthority(spaceSizeAnalyzeRequest, LoginUser);
+        // 构造查询条件
+        QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+        fillAnalyzeQueryWrapper(spaceSizeAnalyzeRequest, queryWrapper);
+
+        queryWrapper.select("picSize");
+
+        List<Long> picSizeCollect = pictureService.getBaseMapper().selectObjs(queryWrapper)
+                .stream().filter(ObjectUtil::isNotNull)
+                .map(size -> (Long) size)
+                .collect(Collectors.toList());
+
+        // 定义分段范围 -- 有序
+        Map<String, Long> sizeRangeMap = new LinkedHashMap<>();
+        sizeRangeMap.put("<100KB", picSizeCollect.stream().filter(size -> size < 100 * 1024).count());
+        sizeRangeMap.put("100KB~500KB", picSizeCollect.stream().filter(size -> size >= 100 * 1024 && size < 500 * 1024).count());
+        sizeRangeMap.put("500KB~1MB", picSizeCollect.stream().filter(size -> size >= 500 * 1024 && size < 1024 * 1024).count());
+        sizeRangeMap.put(">1MB", picSizeCollect.stream().filter(size -> size > 1024 * 1024).count());
+
+        return sizeRangeMap.entrySet().stream()
+                .map(entry -> new SpaceSizeAnalyzeResponse(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SpaceUserAnalyzeResponse> analyzeSpaceUser(SpaceUserAnalyzeRequest spaceUserAnalyzeRequest, User LoginUser) {
+        ThrowUtils.throwIf(spaceUserAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        checkSpaceAuthority(spaceUserAnalyzeRequest, LoginUser);
+        QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+        fillAnalyzeQueryWrapper(spaceUserAnalyzeRequest, queryWrapper);
+
+        Long userId = spaceUserAnalyzeRequest.getUserId();
+        queryWrapper.eq(ObjUtil.isNotEmpty(userId), "userId", userId);
+
+        // 获取分析的维度--时间
+        String timeDimension = spaceUserAnalyzeRequest.getTimeDimension();
+        switch (timeDimension) {
+            case "day":
+                queryWrapper.select("DATE_FORMAT(createTime, '%Y-%m-%d') as period", "count(*) as count");
+                break;
+            case "week":
+                queryWrapper.select("YEAR(createTime) as period", "count(*) as count");
+                break;
+            case "month":
+                queryWrapper.select("DATE_FORMAT(createTime, '%Y-%m' ) as period", "count(*) as count");
+                break;
+            default:
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "时间维度错误");
+        }
+
+        queryWrapper.groupBy("period").orderByAsc("period");
+        // 查询结果
+        List<Map<String, Object>> queryResult = pictureService.getBaseMapper().selectMaps(queryWrapper);
+        // 封装返回
+        List<SpaceUserAnalyzeResponse> collect = queryResult.stream()
+                .map(result -> {
+                    String period = (String) result.get("period");
+                    Long count = ((Number) result.get("count")).longValue();
+                    return new SpaceUserAnalyzeResponse(period, count);
+                })
+                .collect(Collectors.toList());
+        return collect;
+    }
+
+    @Override
+    public List<Space> analyzeSpaceRank(SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, User LoginUser) {
+        ThrowUtils.throwIf(spaceRankAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+
+        ThrowUtils.throwIf(!userService.isAdmin(LoginUser), ErrorCode.NO_AUTH_ERROR);
+
+        // 构造查询条件
+        QueryWrapper<Space> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id", "spaceName", "userId", "totalSize")
+                .orderByDesc("totalSize")
+                .last("limit " + spaceRankAnalyzeRequest.getTopN());
+
+        return spaceService.list(queryWrapper);
+
     }
 
 

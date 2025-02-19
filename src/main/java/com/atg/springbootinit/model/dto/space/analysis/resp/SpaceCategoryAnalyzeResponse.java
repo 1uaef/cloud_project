@@ -1,4 +1,4 @@
-package com.atg.springbootinit.model.dto.space.analysis;
+package com.atg.springbootinit.model.dto.space.analysis.resp;
 
 
 /*
