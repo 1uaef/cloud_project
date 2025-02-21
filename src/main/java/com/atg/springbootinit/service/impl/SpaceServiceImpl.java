@@ -13,11 +13,14 @@ import com.atg.springbootinit.model.dto.space.SpaceAddRequest;
 import com.atg.springbootinit.model.dto.space.SpaceQueryRequest;
 import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.Space;
+import com.atg.springbootinit.model.entity.SpaceUser;
 import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.enums.SpaceLevelEnum;
+import com.atg.springbootinit.model.enums.SpaceRoleEnum;
 import com.atg.springbootinit.model.enums.SpaceTypeEnum;
 import com.atg.springbootinit.model.vo.SpaceVO;
 import com.atg.springbootinit.model.vo.SpaceVO;
+import com.atg.springbootinit.service.SpaceUserService;
 import com.atg.springbootinit.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -43,6 +46,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         implements SpaceService {
     @Resource
     private UserService userService;
+
+    @Resource
+    private SpaceUserService spaceUserService;
 
     @Resource
     private TransactionTemplate transactionTemplate;
@@ -100,6 +106,12 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                 // 如果是创建成功后，是团队空间的话，关联新增团队记录
                 if(SpaceTypeEnum.TEAM.getValue() == space.getSpaceType()){
             //        带补全
+                    SpaceUser spaceUser = new SpaceUser();
+                    spaceUser.setSpaceId(space.getId());
+                    spaceUser.setUserId(userId);
+                    spaceUser.setSpaceRole(SpaceRoleEnum.ADMIN.getValue());
+                    boolean save = spaceUserService.save(spaceUser);
+                    ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR, "保存团队空间用户到数据库失败");
                 }
 
                 return space.getId();
