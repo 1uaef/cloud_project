@@ -62,6 +62,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
             QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
             queryWrapper.select("picSize");
             fillAnalyzeQueryWrapper(spaceUsageAnalyzeRequest, queryWrapper);
+
             List<Object> pictureObjects = pictureService.getBaseMapper().selectObjs(queryWrapper);
 
             long useSize = pictureObjects.stream().mapToLong(obj -> (Long) obj).sum();
@@ -125,7 +126,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
                 .map(result -> {
                     String category = (String) result.get("category");
                     Long count = ((Number) result.get("count")).longValue();
-                    Long totalSize = (Long) result.get("totalSize");
+                    Long totalSize = ((Number) result.get("totalSize")).longValue();
                     return new SpaceCategoryAnalyzeResponse(category, count, totalSize);
                 })
                 .collect(Collectors.toList());
@@ -221,7 +222,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         // 封装返回
         List<SpaceUserAnalyzeResponse> collect = queryResult.stream()
                 .map(result -> {
-                    String period = (String) result.get("period");
+                    String period = result.get("period").toString();
                     Long count = ((Number) result.get("count")).longValue();
                     return new SpaceUserAnalyzeResponse(period, count);
                 })
@@ -281,13 +282,14 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         // 全空间分析
         boolean queryAll = spaceAnalyzeRequest.isQueryAll();
         if (queryAll) {
-            queryWrapper.lambda().eq(Picture::getIsDelete, 0);
-//            return;
+//            queryWrapper.lambda().eq(Picture::getIsDelete, 0);
+            return;
         }
         // 分析公共图片
         boolean queryPublic = spaceAnalyzeRequest.isQueryPublic();
         if (queryPublic) {
             queryWrapper.isNull("spaceId");
+            return;
         }
 
         // 根据ID分析某个空间
