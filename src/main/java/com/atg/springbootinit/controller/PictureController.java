@@ -18,6 +18,7 @@ import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
+import com.atg.springbootinit.manager.auth.SpaceUserAuthManager;
 import com.atg.springbootinit.manager.auth.annotation.SaSpaceCheckPermission;
 import com.atg.springbootinit.manager.auth.model.SpaceUserPermissionConstant;
 import com.atg.springbootinit.model.dto.picture.*;
@@ -64,6 +65,9 @@ public class PictureController {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     @Resource
     private AliYunAiApi aliYunAiApi;
@@ -215,12 +219,20 @@ public class PictureController {
         }
         // 私有空间，需要校验权限
         Long spaceId = picture.getSpaceId();
+        Space space = null;
         if (spaceId != null && spaceId > 0) {
-            User loginUser = userService.getLoginUser(request);
-            pictureService.checkPictureAuthority(picture, loginUser);
+            space = spaceService.getById(spaceId);
+            if (space == null) {
+                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+            }
         }
         //
+        User user = userService.getLoginUser(request);
+        List<String> permissionsList = spaceUserAuthManager.getPermissionsList(space, user);
+
         PictureVO pictureVO = pictureService.getPictureVO(picture, request);
+        pictureVO.setPermissionList(permissionsList);
+
         return ResultUtils.success(pictureVO);
     }
 

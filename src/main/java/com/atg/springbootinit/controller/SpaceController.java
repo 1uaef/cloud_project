@@ -9,6 +9,7 @@ import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
+import com.atg.springbootinit.manager.auth.SpaceUserAuthManager;
 import com.atg.springbootinit.model.dto.space.*;
 import com.atg.springbootinit.model.entity.Space;
 import com.atg.springbootinit.model.entity.User;
@@ -43,6 +44,9 @@ public class SpaceController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     /**
      * 添加空间
@@ -145,6 +149,10 @@ public class SpaceController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+        User user = userService.getLoginUser(request);
+
+        List<String> permissionsList = spaceUserAuthManager.getPermissionsList(space, user);
+        spaceVO.setPermissionList(permissionsList);
         return ResultUtils.success(spaceVO);
     }
 

@@ -6,7 +6,9 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /*
 author: atg
@@ -43,6 +45,12 @@ public class SpaceVO implements Serializable {
      * 当前空间下图片的总大小
      */
     private Long totalSize;
+
+    /**
+     * 权限列表
+     */
+    private List<String> permissionList = new ArrayList<>();
+
 
     /**
      * 当前空间下的图片数量
