@@ -1,4 +1,5 @@
 package com.atg.springbootinit.service.impl;
+
 import com.atg.springbootinit.api.aliyuAi.AliYunAiApi;
 import com.atg.springbootinit.api.aliyuAi.model.CreateOutPaintingTaskRequest.Parameters;
 import com.atg.springbootinit.api.aliyuAi.model.CreateOutPaintingTaskRequest.Input;
@@ -467,12 +468,17 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             if (!result) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR);
             }
-            // 更新空间信息
-            boolean update = spaceService.lambdaUpdate().eq(Space::getId, oldPicture.getSpaceId())
-                    .setSql("totalCount = totalCount - 1")
-                    .setSql("totalSize = totalSize - " + oldPicture.getPicSize())
-                    .update();
-            ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "空间信息更新失败");
+            // 如果有空间id才进行更新空间信息
+            if (oldPicture.getSpaceId() != null) {
+                // 更新空间信息
+                boolean update = spaceService.lambdaUpdate().
+                        eq(Space::getId, oldPicture.getSpaceId())
+                        .setSql("totalCount = totalCount - 1")
+                        .setSql("totalSize = totalSize - " + oldPicture.getPicSize())
+                        .update();
+                ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "空间信息更新失败");
+
+            }
 
             return true;
         });
