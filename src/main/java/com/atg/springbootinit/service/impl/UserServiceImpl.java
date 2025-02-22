@@ -3,6 +3,7 @@ package com.atg.springbootinit.service.impl;
 import static com.atg.springbootinit.constant.UserConstant.USER_LOGIN_STATE;
 
 import cn.hutool.core.collection.CollUtil;
+import com.atg.springbootinit.manager.auth.StpKit;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.atg.springbootinit.common.ErrorCode;
@@ -104,6 +105,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         // 3. 记录用户的登录态
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
+
+        // 4. 记录登录状态到sa-token
+        StpKit.SPACE.login(user.getId());
+        StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
         return this.getLoginUserVO(user);
     }
 

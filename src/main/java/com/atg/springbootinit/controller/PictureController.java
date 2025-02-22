@@ -18,6 +18,8 @@ import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
+import com.atg.springbootinit.manager.auth.annotation.SaSpaceCheckPermission;
+import com.atg.springbootinit.manager.auth.model.SpaceUserPermissionConstant;
 import com.atg.springbootinit.model.dto.picture.*;
 import com.atg.springbootinit.model.entity.Picture;
 import com.atg.springbootinit.model.entity.Space;
@@ -84,6 +86,7 @@ public class PictureController {
      */
     @PostMapping("/upload")
 //    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile,
                                                  PictureUploadRequest pictureUploadRequest,
                                                  HttpServletRequest request) {
