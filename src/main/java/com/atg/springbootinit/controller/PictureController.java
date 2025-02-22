@@ -99,6 +99,7 @@ public class PictureController {
      * 根据URL上传图片
      */
     @PostMapping("/upload/url")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPictureByUrl(@RequestBody PictureUploadRequest pictureUploadRequest,
                                                       HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
@@ -124,6 +125,7 @@ public class PictureController {
      * 删除图片
      */
     @PostMapping("/delete")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_DELETE)
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -188,6 +190,7 @@ public class PictureController {
      * 编辑图片--用户
      */
     @PostMapping("/edit")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
         if (pictureEditRequest == null || pictureEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -366,6 +369,7 @@ public class PictureController {
     }
     // 批量更新
     @PostMapping("/batch/edit")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> batchEditPicture(@RequestBody PictureBatchByEditRequest pictureBatchByEditRequest, HttpServletRequest request) {
 
         if (pictureBatchByEditRequest == null || pictureBatchByEditRequest.getPictureIdList() == null) {
@@ -387,6 +391,7 @@ public class PictureController {
     }
     // 查询ai扩图任务
     @GetMapping("/get/outpainting")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<GetOutPaintingTaskResponse> getOutPaintingTask(String taskId) {
         if (StringUtils.isBlank(taskId)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

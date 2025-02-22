@@ -19,6 +19,7 @@ import com.atg.springbootinit.model.entity.SpaceUser;
 import com.atg.springbootinit.service.SpaceUserService;
 import com.atg.springbootinit.mapper.SpaceUserMapper;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -40,6 +41,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     private UserService userService;
 
     @Resource
+    @Lazy
     private SpaceService spaceService;
 
 

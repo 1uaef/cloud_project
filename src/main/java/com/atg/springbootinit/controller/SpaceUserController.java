@@ -6,6 +6,8 @@ import com.atg.springbootinit.common.DeleteRequest;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.exception.ThrowUtils;
+import com.atg.springbootinit.manager.auth.annotation.SaSpaceCheckPermission;
+import com.atg.springbootinit.manager.auth.model.SpaceUserPermissionConstant;
 import com.atg.springbootinit.model.dto.space.SpaceQueryRequest;
 import com.atg.springbootinit.model.dto.space_user.SpaceUserAddRequest;
 import com.atg.springbootinit.model.dto.space_user.SpaceUserEditRequest;
@@ -45,6 +47,7 @@ public class SpaceUserController {
      * @return
      */
     @RequestMapping("/add")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Long> addSpaceUser(@RequestBody SpaceUserAddRequest spaceUserAddRequest) {
         if (spaceUserAddRequest == null) {
             throw new RuntimeException("参数错误");
@@ -55,6 +58,7 @@ public class SpaceUserController {
 
     //  删除团队空间成员
     @RequestMapping("/delete")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Boolean> deleteSpaceUser(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new RuntimeException("参数错误");
@@ -74,6 +78,7 @@ public class SpaceUserController {
 
     // 修改团队空间成员信息--edit
     @RequestMapping("/edit")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Boolean> editSpaceUser(@RequestBody SpaceUserEditRequest spaceUserEditRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(spaceUserEditRequest == null, ErrorCode.PARAMS_ERROR);
         ThrowUtils.throwIf(spaceUserEditRequest.getId() == null, ErrorCode.PARAMS_ERROR);
@@ -93,6 +98,7 @@ public class SpaceUserController {
 
     // 查询某个成员在某个空间的信息
     @RequestMapping("/get")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<SpaceUser> getSpaceUser(@RequestBody SpaceUserQueryRequest spaceUserQueryRequest) {
         ThrowUtils.throwIf(spaceUserQueryRequest == null, ErrorCode.PARAMS_ERROR);
 
@@ -109,6 +115,7 @@ public class SpaceUserController {
     }
     // 查询团队空间列表  空间列表包含了查询操作
     @RequestMapping("/list")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<List<SpaceUserVO>> listSpaceUser(@RequestBody  SpaceUserQueryRequest spaceUserQueryRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(spaceUserQueryRequest == null, ErrorCode.PARAMS_ERROR);
         List<SpaceUser> spaceUserList = spaceUserService.list(spaceUserService.getQueryWrapper(spaceUserQueryRequest));

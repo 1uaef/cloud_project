@@ -33,7 +33,7 @@ public class SpaceUserAuthManager {
             return new ArrayList<>();
         }
         SpaceUserRole permissionRole = SPACE_USER_AUTH_CONFIG.getRoles().stream()
-                .filter(spaceUserRole -> spaceUserRole.equals(spaceUserRole.getKey()))
+                .filter(r -> r.getKey().equals(role))
                 .findFirst()
                 .orElse(null);
         if (permissionRole == null) {
