@@ -19,6 +19,7 @@ import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.manager.auth.SpaceUserAuthManager;
+import com.atg.springbootinit.manager.auth.StpKit;
 import com.atg.springbootinit.manager.auth.annotation.SaSpaceCheckPermission;
 import com.atg.springbootinit.manager.auth.model.SpaceUserPermissionConstant;
 import com.atg.springbootinit.model.dto.picture.*;
@@ -264,12 +265,14 @@ public class PictureController {
         Long spaceId = pictureQueryRequest.getSpaceId();
         if (spaceId != null && spaceId > 0) {
             // 私有空间
-            User loginUser = userService.getLoginUser(request);
-            Space space = spaceService.getById(spaceId);
-            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
-            if (!loginUser.getId().equals(space.getUserId())) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
-            }
+//            User loginUser = userService.getLoginUser(request);
+//            Space space = spaceService.getById(spaceId);
+//            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
+//            if (!loginUser.getId().equals(space.getUserId())) {
+//                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
+//            }
+            boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
+            ThrowUtils.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR, "没有空间权限");
         } else {
             // 查看审核的数据 --- 公开图库
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());

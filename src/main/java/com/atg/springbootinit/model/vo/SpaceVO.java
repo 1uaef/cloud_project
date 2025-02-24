@@ -45,6 +45,10 @@ public class SpaceVO implements Serializable {
      * 当前空间下图片的总大小
      */
     private Long totalSize;
+    /**
+     * 当前空间类型
+     */
+    private Integer spaceType;
 
     /**
      * 权限列表

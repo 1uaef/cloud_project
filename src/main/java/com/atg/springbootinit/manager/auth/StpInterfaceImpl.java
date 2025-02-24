@@ -147,7 +147,7 @@ public class StpInterfaceImpl implements StpInterface {
             // 获取当前登录用户对应的spaceUser
             SpaceUser loginSpaceUser = spaceUserService.lambdaQuery()
                     .eq(SpaceUser::getUserId, userId)
-                    .eq(SpaceUser::getSpaceId, spaceUser.getSpaceId())
+                    .eq(SpaceUser::getSpaceId, byId.getSpaceId())
                     .one();
             if (loginSpaceUser == null) {
                 return new ArrayList<>();

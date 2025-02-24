@@ -17,6 +17,7 @@ import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.vo.SpaceUserVO;
 import com.atg.springbootinit.service.SpaceUserService;
 import com.atg.springbootinit.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +33,7 @@ time: 2025/2/21 10:12
 */
 @RestController
 @RequestMapping("/spaceUser")
+@Slf4j
 public class SpaceUserController {
 
     @Resource
@@ -80,8 +82,9 @@ public class SpaceUserController {
     @RequestMapping("/edit")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Boolean> editSpaceUser(@RequestBody SpaceUserEditRequest spaceUserEditRequest, HttpServletRequest request) {
-        ThrowUtils.throwIf(spaceUserEditRequest == null, ErrorCode.PARAMS_ERROR);
-        ThrowUtils.throwIf(spaceUserEditRequest.getId() == null, ErrorCode.PARAMS_ERROR);
+       if( spaceUserEditRequest == null || spaceUserEditRequest.getId() <= 0){
+           throw new RuntimeException("参数错误");
+       }
         SpaceUser spaceUser = new SpaceUser();
         BeanUtils.copyProperties(spaceUserEditRequest, spaceUser);
         spaceUserService.validSpaceUser(spaceUser, false);

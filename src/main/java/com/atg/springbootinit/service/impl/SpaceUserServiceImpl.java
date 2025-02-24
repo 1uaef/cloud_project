@@ -2,7 +2,9 @@ package com.atg.springbootinit.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.atg.springbootinit.common.ErrorCode;
+import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.model.dto.space_user.SpaceUserAddRequest;
 import com.atg.springbootinit.model.dto.space_user.SpaceUserQueryRequest;
@@ -70,22 +72,41 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
      */
     @Override
     public void validSpaceUser(SpaceUser spaceUser, boolean add) {
+//        ThrowUtils.throwIf(spaceUser == null, ErrorCode.PARAMS_ERROR);
+//        Long userId = spaceUser.getUserId();
+//        Long spaceId = spaceUser.getSpaceId();
+//        // 添加的时候校验
+//        if (add) {
+//            ThrowUtils.throwIf(userId == null || spaceId == null, ErrorCode.PARAMS_ERROR);
+//            User userById = userService.getById(userId);
+//            ThrowUtils.throwIf(userById == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+//            // 校验空间是否存在
+//            Space spaceById = spaceService.getById(spaceId);
+//            ThrowUtils.throwIf(spaceById == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+//        }
+//        // 修改时校验
+//        String spaceRole = spaceUser.getSpaceRole();
+//        SpaceRoleEnum spaceRoleEnum = SpaceRoleEnum.getEnumByValue(spaceRole);
+//        ThrowUtils.throwIf(spaceRoleEnum == null, ErrorCode.PARAMS_ERROR, "空间角色不存在");
+
         ThrowUtils.throwIf(spaceUser == null, ErrorCode.PARAMS_ERROR);
-        Long userId = spaceUser.getUserId();
+        // 创建时，空间 id 和用户 id 必填
         Long spaceId = spaceUser.getSpaceId();
-        // 添加的时候校验
+        Long userId = spaceUser.getUserId();
         if (add) {
-            ThrowUtils.throwIf(userId == null || spaceId == null, ErrorCode.PARAMS_ERROR);
-            User userById = userService.getById(userId);
-            ThrowUtils.throwIf(userById == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
-            // 校验空间是否存在
-            Space spaceById = spaceService.getById(spaceId);
-            ThrowUtils.throwIf(spaceById == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            ThrowUtils.throwIf(ObjectUtil.hasEmpty(spaceId, userId), ErrorCode.PARAMS_ERROR);
+            User user = userService.getById(userId);
+            ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+            Space space = spaceService.getById(spaceId);
+            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
         }
-        // 修改时校验
+        // 校验空间角色
         String spaceRole = spaceUser.getSpaceRole();
         SpaceRoleEnum spaceRoleEnum = SpaceRoleEnum.getEnumByValue(spaceRole);
-        ThrowUtils.throwIf(spaceRoleEnum == null, ErrorCode.PARAMS_ERROR, "角色错误");
+        if (spaceRole != null && spaceRoleEnum == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间角色不存在");
+        }
+
 
     }
 
