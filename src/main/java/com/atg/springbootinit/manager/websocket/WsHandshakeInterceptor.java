@@ -97,7 +97,7 @@ public class WsHandshakeInterceptor implements HandshakeInterceptor {
             }
             attributes.put("user", loginUser);
             attributes.put("userId", loginUser.getId());
-            attributes.put("pictureId", pictureId);
+            attributes.put("pictureId", Long.valueOf(pictureId)); // 将图片id放入attributes中
         }
         return true;
     }
