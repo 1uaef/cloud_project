@@ -2,6 +2,7 @@ package com.atg.springbootinit.manager.websocket;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
+import com.atg.springbootinit.manager.websocket.disruptor.PictureEditEventProducer;
 import com.atg.springbootinit.manager.websocket.model.PictureEditActionEnum;
 import com.atg.springbootinit.manager.websocket.model.PictureEditMessageTypeEnum;
 import com.atg.springbootinit.manager.websocket.model.PictureEditRequestMessage;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -40,6 +42,10 @@ public class PictureEditHandler extends TextWebSocketHandler {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    @Lazy
+    private PictureEditEventProducer pictureEditEventProducer;
 
 
     // 每张图片编辑的状态，key为图片id，value为状态 userId
@@ -108,7 +114,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
         }
     }
 
-    //    收到前端发送的消息，根据消息类别处理消息  --- 比如 ： xx用户进入编辑模式，xx用户退出编辑模式，xx用户执行了xx操作
+    //    前端发送的消息，根据消息类别处理消息  --- 比如 ： xx用户进入编辑模式，xx用户退出编辑模式，xx用户执行了xx操作
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         PictureEditRequestMessage pictureEditRequestMessage = JSONUtil.toBean(message.getPayload(), PictureEditRequestMessage.class);
@@ -119,29 +125,14 @@ public class PictureEditHandler extends TextWebSocketHandler {
         Map<String, Object> attributes = session.getAttributes();
         User user = (User) attributes.get("user"); // 获取用户信息
         Long pictureId = (Long) attributes.get("pictureId"); // 获取图片id
+        // 根据消息的类型处理消息
+        pictureEditEventProducer.publishEvent(pictureEditRequestMessage, session, user, pictureId);
 
-        // 根据消息类型处理消息
-        switch (messageTypeEnum) {
-            case ENTER_EDIT: // 用户进入编辑模式
-                handleEnterEditMessage(pictureEditRequestMessage, session, pictureId, user);
-                break;
-            case EDIT_ACTION:
-                handleEditActionMessage(pictureEditRequestMessage, session, pictureId, user);
-                break;
-            case EXIT_EDIT:
-                handleExitEditMessage(pictureEditRequestMessage, session, pictureId, user);
-                break;
-            default:
-                PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
-                pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.INFO.getValue());
-                pictureEditResponseMessage.setMessage("未知消息类型");
-                pictureEditResponseMessage.setUser(userService.getUserVO(user));
-                session.sendMessage(new TextMessage(JSONUtil.toJsonStr(pictureEditResponseMessage)));
-        }
+
 
     }
 
-    private void handleExitEditMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, Long pictureId, User user) throws IOException {
+    public void handleExitEditMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, Long pictureId, User user) throws IOException {
         // 确认当前用户是否是编辑用户
         Long editUserId = pictureEditUsers.get(pictureId);
         if (editUserId.equals(user.getId())) {
@@ -155,7 +146,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
     }
 
     // 用户进行编辑操作 --- 比如：xx用户执行了xx操作 通知团队成员  自己不通知
-    private void handleEditActionMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, Long pictureId, User user) throws IOException {
+    public void handleEditActionMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, Long pictureId, User user) throws IOException {
         Long editUserId = pictureEditUsers.get(pictureId);
         String editAction = pictureEditRequestMessage.getEditAction();
         PictureEditActionEnum actionEnum = PictureEditActionEnum.getEnumByValue(editAction); // 获取操作类型
@@ -173,7 +164,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
         }
     }
 
-    private void handleEnterEditMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, Long pictureId, User user) throws IOException {
+    public void handleEnterEditMessage(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, Long pictureId, User user) throws IOException {
         // 没有用户编辑才能进行编辑
         if (!pictureEditUsers.containsKey(pictureId)) {
             // 将用户添加到编辑用户列表中
