@@ -43,6 +43,32 @@ public class LoginUserVO implements Serializable {
     private String userRole;
 
     /**
+     * 手机号
+     */
+    private String phoneNumber;
+
+    /**
+     * 邮箱
+     */
+    private String email;
+
+    /**
+     * 年级
+     */
+    private String grade;
+
+    /**
+     * 工作经验
+     */
+    private String workExperience;
+
+    /**
+     * 擅长方向
+     */
+    private String expertiseDirection;
+
+
+    /**
      * 创建时间
      */
     private Date createTime;

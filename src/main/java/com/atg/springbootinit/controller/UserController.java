@@ -277,4 +277,20 @@ public class UserController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
+
+    // 修改编辑请求
+    @PostMapping("/edit")
+    public BaseResponse<Boolean> updateEditUser(@RequestBody UserEditRequest  userEditRequest, HttpServletRequest request) {
+        if (userEditRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        User user = new User();
+        BeanUtils.copyProperties(userEditRequest, user);
+        // 修改用户 只能修改自己 --- 防止修改别人的用户信息
+        user.setId(loginUser.getId());
+        boolean result = userService.updateById(user);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
+    }
 }

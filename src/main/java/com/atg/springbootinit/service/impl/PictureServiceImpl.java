@@ -150,9 +150,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 //                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
 //            }
 //             上传的校验空间是否一致
-            if (oldPicture.getSpaceId() != null && !oldPicture.getSpaceId().equals(spaceId)) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "上传的图片空间不一致");
-            }
+           if(spaceId == null){
+               spaceId = oldPicture.getSpaceId();
+               if (spaceId != null){
+                   spaceId = oldPicture.getSpaceId();
+               }
+           }else{
+               if(ObjUtil.notEqual(spaceId,oldPicture.getSpaceId())){
+                   throw new BusinessException(ErrorCode.PARAMS_ERROR,"上传的图片空间不一致");
+               }
+           }
         }
         // 4. 上传图片并获取上传结果
         String uploadPathPrefix = null;
