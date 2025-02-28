@@ -36,6 +36,7 @@ replay_pid*
 .idea/**/dictionaries
 .idea/**/shelf
 .idea
+com/atg/springbootinit/generate
 target
 .mvn
 
@@ -189,3 +190,5 @@ fabric.properties
 /src/main/resources/application.yml
 !/src/main/java/com/atg/springbootinit/constant/FileConstant.java
 !/src/main/java/com/atg/springbootinit/constant/FileConstant.java
+/src/main/resources/templates/
+/src/main/java/com/atg/springbootinit/generate/
