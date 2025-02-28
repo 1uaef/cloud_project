@@ -1,5 +1,6 @@
 package com.atg.springbootinit.service;
 
+import com.atg.springbootinit.model.dto.question_bank.QuestionBankList;
 import com.atg.springbootinit.model.dto.question_bank.QuestionBankQueryRequest;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -9,6 +10,7 @@ import com.atg.springbootinit.model.entity.QuestionBank;
 import com.atg.springbootinit.model.vo.QuestionBankVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 题库服务
@@ -50,4 +52,8 @@ public interface QuestionBankService extends IService<QuestionBank> {
      * @return
      */
     Page<QuestionBankVO> getQuestionBankVOPage(Page<QuestionBank> questionBankPage, HttpServletRequest request);
+
+
+    // 获取题库列表 -- 只要获取名字
+    QuestionBankList getQuestionBankList();
 }

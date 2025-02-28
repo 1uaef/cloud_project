@@ -39,7 +39,7 @@ public class QuestionBankQueryRequest extends PageRequest implements Serializabl
     /**
      * 内容
      */
-    private String content;
+    private String description;
 
 
 
