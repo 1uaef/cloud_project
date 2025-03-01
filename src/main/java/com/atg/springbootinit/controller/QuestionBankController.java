@@ -9,10 +9,7 @@ import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
 
-import com.atg.springbootinit.model.dto.question_bank.QuestionBankAddRequest;
-import com.atg.springbootinit.model.dto.question_bank.QuestionBankEditRequest;
-import com.atg.springbootinit.model.dto.question_bank.QuestionBankQueryRequest;
-import com.atg.springbootinit.model.dto.question_bank.QuestionBankUpdateRequest;
+import com.atg.springbootinit.model.dto.question_bank.*;
 import com.atg.springbootinit.model.entity.QuestionBank;
 import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.vo.QuestionBankVO;
@@ -25,11 +22,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 题库接口
- *
-
  */
 @RestController
 @RequestMapping("/questionBank")
@@ -108,7 +104,7 @@ public class QuestionBankController {
         if (questionBankUpdateRequest == null || questionBankUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // todo 在此处将实体类和 DTO 进行转换
+        // 封装数据 to 对象
         QuestionBank questionBank = new QuestionBank();
         BeanUtils.copyProperties(questionBankUpdateRequest, questionBank);
         // 数据校验
@@ -165,7 +161,7 @@ public class QuestionBankController {
      */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<QuestionBankVO>> listQuestionBankVOByPage(@RequestBody QuestionBankQueryRequest questionBankQueryRequest,
-                                                               HttpServletRequest request) {
+                                                                       HttpServletRequest request) {
         long current = questionBankQueryRequest.getCurrent();
         long size = questionBankQueryRequest.getPageSize();
         // 限制爬虫
@@ -186,7 +182,7 @@ public class QuestionBankController {
      */
     @PostMapping("/my/list/page/vo")
     public BaseResponse<Page<QuestionBankVO>> listMyQuestionBankVOByPage(@RequestBody QuestionBankQueryRequest questionBankQueryRequest,
-                                                                 HttpServletRequest request) {
+                                                                         HttpServletRequest request) {
         ThrowUtils.throwIf(questionBankQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 补充查询条件，只查询当前登录用户的数据
         User loginUser = userService.getLoginUser(request);
@@ -214,7 +210,7 @@ public class QuestionBankController {
         if (questionBankEditRequest == null || questionBankEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // todo 在此处将实体类和 DTO 进行转换
+        //
         QuestionBank questionBank = new QuestionBank();
         BeanUtils.copyProperties(questionBankEditRequest, questionBank);
         // 数据校验
@@ -234,5 +230,12 @@ public class QuestionBankController {
         return ResultUtils.success(true);
     }
 
-    // endregion
+    //获取题库列表
+    @GetMapping("/questionBankList")
+    public BaseResponse<QuestionBankList> getQuestionBankList() {
+
+        QuestionBankList questionBankList = questionBankService.getQuestionBankList();
+        return ResultUtils.success(questionBankList);
+    }
+
 }
