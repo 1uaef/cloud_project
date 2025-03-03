@@ -42,7 +42,6 @@ public class QuestionBankQueryRequest extends PageRequest implements Serializabl
     private String description;
 
 
-
     /**
      * 图片
      */
