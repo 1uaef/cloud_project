@@ -15,6 +15,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class QuestionBankQuestionQueryRequest extends PageRequest implements Serializable {
+     /* id
+     */
+    private Long id;
 
     /**
      * id

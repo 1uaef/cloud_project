@@ -50,5 +50,6 @@ public interface QuestionService extends IService<Question> {
      */
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
 
-//    Page<Question> listQuestionByPage(QuestionQueryRequest questionQueryRequest);
+    //  分页获取题目列表（仅管理员）
+    Page<Question> listQuestionByPage(QuestionQueryRequest questionQueryRequest);
 }

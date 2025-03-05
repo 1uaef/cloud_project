@@ -1,7 +1,13 @@
 package com.atg.springbootinit.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.atg.springbootinit.model.entity.QuestionBank;
+import com.atg.springbootinit.model.entity.QuestionBankQuestion;
+import com.atg.springbootinit.service.QuestionBankQuestionService;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.atg.springbootinit.common.ErrorCode;
@@ -19,6 +25,8 @@ import com.atg.springbootinit.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -31,8 +39,6 @@ import java.util.stream.Collectors;
 
 /**
  * 题目服务实现
- *
-
  */
 @Service
 @Slf4j
@@ -40,6 +46,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Resource
     private UserService userService;
+    @Resource
+    @Lazy
+    private QuestionBankQuestionService questionBankQuestionService;
 
     /**
      * 校验数据
@@ -184,12 +193,35 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return questionVOPage;
     }
 
+    @Override
+    public Page<Question> listQuestionByPage(QuestionQueryRequest questionQueryRequest) {
+        int current = questionQueryRequest.getCurrent();
+        int pageSize = questionQueryRequest.getPageSize();
+        // 根据请求对象构造查询条件。
+        QueryWrapper<Question> queryWrapper = this.getQueryWrapper(questionQueryRequest);
+        Long questionBankId = questionQueryRequest.getQuestionBankId();
+        if (questionBankId != null) {
+            // 查询该题库下的所有题目        --- 构造查询条件
+            LambdaQueryWrapper<QuestionBankQuestion> lambdaQueryWrapper = Wrappers.lambdaQuery(QuestionBankQuestion.class)
+                    .select(QuestionBankQuestion::getQuestionId)
+                    .eq(QuestionBankQuestion::getQuestionBankId, questionBankId);
+            List<QuestionBankQuestion> questionList = questionBankQuestionService.list(lambdaQueryWrapper);
+            // 获取所有题目的 id
+            if (CollUtil.isNotEmpty(questionList)) {
+                Set<Long> questionIdSet = questionList.stream()
+                        .map(QuestionBankQuestion::getQuestionId)
+                        .collect(Collectors.toSet());
+                queryWrapper.in("id", questionIdSet);
+            } else {
+                // 没有题目，则返回空
+                return new Page<>(current, pageSize, 0);
 
+            }
+        }
+        Page<Question> page = this.page(new Page<>(current, pageSize), queryWrapper);
+        return page;
 
-
-
-
-
+    }
 
 
 }
