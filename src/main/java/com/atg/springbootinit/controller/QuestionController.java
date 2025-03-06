@@ -256,4 +256,16 @@ public class QuestionController {
         boolean questionByAI = questionService.createQuestionByAI(questionType, num, loginUser);
         return ResultUtils.success(questionByAI);
     }
+    // 批量删除题目
+    @PostMapping("/delete/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> deleteQuestionBatch(@RequestBody DeleteBatchRequest deleteBatchRequest, HttpServletRequest request) {
+        List<Long> idList = deleteBatchRequest.getIds();
+        if (idList == null || idList.isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = questionService.deleteQuestionBatch(idList, loginUser);
+        return ResultUtils.success(result);
+    }
 }
