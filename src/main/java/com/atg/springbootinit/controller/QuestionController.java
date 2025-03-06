@@ -1,6 +1,8 @@
 package com.atg.springbootinit.controller;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.atg.springbootinit.model.dto.question.*;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.atg.springbootinit.annotation.AuthCheck;
 import com.atg.springbootinit.common.BaseResponse;
@@ -10,10 +12,6 @@ import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.constant.UserConstant;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
-import com.atg.springbootinit.model.dto.question.QuestionAddRequest;
-import com.atg.springbootinit.model.dto.question.QuestionEditRequest;
-import com.atg.springbootinit.model.dto.question.QuestionQueryRequest;
-import com.atg.springbootinit.model.dto.question.QuestionUpdateRequest;
 import com.atg.springbootinit.model.entity.Question;
 import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.vo.QuestionVO;
@@ -29,8 +27,6 @@ import java.util.List;
 
 /**
  * 题目接口
- *
-
  */
 @RestController
 @RequestMapping("/question")
@@ -168,7 +164,6 @@ public class QuestionController {
     }
 
 
-
     /**
      * 分页获取题目列表（封装类）
      *
@@ -247,4 +242,18 @@ public class QuestionController {
         return ResultUtils.success(true);
     }
 
+    @PostMapping("/ai/generate/question")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> createQuestionByAI(@RequestBody QuestionAiCreateRequest questionAiCreateRequest, HttpServletRequest request) {
+        if (questionAiCreateRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String questionType = questionAiCreateRequest.getQuestionType();
+        int num = questionAiCreateRequest.getNum();
+        ThrowUtils.throwIf(StrUtil.isBlank(questionType), ErrorCode.PARAMS_ERROR, "题目类型不能为空");
+        ThrowUtils.throwIf(num <= 0, ErrorCode.PARAMS_ERROR, "题目数量不能小于等于0");
+        User loginUser = userService.getLoginUser(request);
+        boolean questionByAI = questionService.createQuestionByAI(questionType, num, loginUser);
+        return ResultUtils.success(questionByAI);
+    }
 }
