@@ -1,5 +1,6 @@
 package com.atg.springbootinit.service;
 
+import com.atg.springbootinit.model.entity.User;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -8,6 +9,7 @@ import com.atg.springbootinit.model.entity.Question;
 import com.atg.springbootinit.model.vo.QuestionVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 题目服务
@@ -52,4 +54,12 @@ public interface QuestionService extends IService<Question> {
 
     //  分页获取题目列表（仅管理员）
     Page<Question> listQuestionByPage(QuestionQueryRequest questionQueryRequest);
+
+
+    // ai 生成题目
+    boolean createQuestionByAI(String questionType, int num, User user);
+
+
+    // 批量删除题目（仅管理员）
+    boolean deleteQuestionBatch(List<Long> idList, User loginUser);
 }
