@@ -11,6 +11,7 @@ import com.atg.springbootinit.exception.ThrowUtils;
 
 import com.atg.springbootinit.model.dto.question.QuestionQueryRequest;
 import com.atg.springbootinit.model.dto.question_bank.*;
+import com.atg.springbootinit.model.entity.MockInterview;
 import com.atg.springbootinit.model.entity.Question;
 import com.atg.springbootinit.model.entity.QuestionBank;
 import com.atg.springbootinit.model.entity.User;
@@ -99,7 +100,9 @@ public class QuestionBankController {
         boolean result = questionBankService.removeById(id);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
+
     }
+
 
     /**
      * 更新题库（仅管理员可用）

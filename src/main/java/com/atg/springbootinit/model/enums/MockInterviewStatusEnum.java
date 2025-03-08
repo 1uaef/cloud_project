@@ -1,6 +1,7 @@
 package com.atg.springbootinit.model.enums;
 
 
+import lombok.Getter;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Arrays;
@@ -9,8 +10,10 @@ import java.util.stream.Collectors;
 
 /*
 author: atg
-time: 2025/3/7 11:25
+time: 2025/3/7 14:26
 */
+// 模拟面试状态枚举
+@Getter
 public enum MockInterviewStatusEnum {
 
     TO_START("待开始", 0),
@@ -53,11 +56,4 @@ public enum MockInterviewStatusEnum {
         return null;
     }
 
-    public int getValue() {
-        return value;
-    }
-
-    public String getText() {
-        return text;
-    }
 }

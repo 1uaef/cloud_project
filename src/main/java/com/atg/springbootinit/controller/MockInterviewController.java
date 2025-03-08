@@ -9,6 +9,7 @@ import com.atg.springbootinit.common.ResultUtils;
 import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.model.dto.mockInterView.MockInterviewAddRequest;
+import com.atg.springbootinit.model.dto.mockInterView.MockInterviewEventRequest;
 import com.atg.springbootinit.model.dto.mockInterView.MockInterviewQueryRequest;
 import com.atg.springbootinit.model.entity.MockInterview;
 import com.atg.springbootinit.model.entity.User;
@@ -75,7 +76,7 @@ public class MockInterviewController {
 
     // 根据id 获取面试记录
     @PostMapping("/get")
-    public BaseResponse<MockInterview> getMockInterview(@RequestBody Long id, HttpServletRequest request) {
+    public BaseResponse<MockInterview> getMockInterviewById(Long id, HttpServletRequest request) {
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR);
         MockInterview mockInterview = mockInterviewService.getById(id);
         return ResultUtils.success(mockInterview);
@@ -109,5 +110,16 @@ public class MockInterviewController {
         Page<MockInterview> queryPage = new Page<>(current, pageSize);
         Page<MockInterview> mockInterviewPage = mockInterviewService.page(queryPage, mockInterviewService.getQueryWrapper(mockInterviewQueryRequest));
         return ResultUtils.success(mockInterviewPage);
+    }
+
+    // 处理模拟面试
+    @PostMapping("/process/interview")
+
+    public BaseResponse<String> processMockInterview(@RequestBody MockInterviewEventRequest mockInterviewEventRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(mockInterviewEventRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        String chatMessage = mockInterviewService.handleMockInterviewEvent(mockInterviewEventRequest, loginUser);
+        return ResultUtils.success(chatMessage);
+
     }
 }

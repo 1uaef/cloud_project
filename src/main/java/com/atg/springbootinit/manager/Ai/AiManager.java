@@ -35,12 +35,20 @@ public class AiManager {
         return doChat("", userPrompt, DEFAULT_MODEL);
     }
 
-    public String doChat(String systemPrompt,String userPrompt) {
-        return doChat(systemPrompt,userPrompt,DEFAULT_MODEL);
+    /**
+     * 允许传入自定义的消息列表--多轮对话，使用默认模型
+     */
+    public String doChat(List<ChatMessage> messages) {
+        return doChat(messages, DEFAULT_MODEL);
     }
 
 
-    public String doChat(String systemPrompt,String userPrompt, String model) {
+    public String doChat(String systemPrompt, String userPrompt) {
+        return doChat(systemPrompt, userPrompt, DEFAULT_MODEL);
+    }
+
+
+    public String doChat(String systemPrompt, String userPrompt, String model) {
 
         final List<ChatMessage> messages = new ArrayList<>();
         final ChatMessage systemMessage = ChatMessage.builder().role(ChatMessageRole.SYSTEM).content(systemPrompt).build();
@@ -48,18 +56,35 @@ public class AiManager {
         messages.add(systemMessage);
         messages.add(userMessage);
 
+        return getChatCallGet(messages, model);
+
+    }
+
+
+    /**
+     * 调用 AI 接口，获取响应字符串（允许传入自定义的消息列表）
+     *
+     * @param messages
+     * @param model
+     * @return
+     */
+    public String doChat(List<ChatMessage> messages, String model) {
+        // 构造请求
+        return getChatCallGet(messages, model);
+
+    }
+
+    private String getChatCallGet(List<ChatMessage> messages, String model) {
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                // 指定您创建的方舟推理接入点 ID，此处已帮您修改为您的推理接入点 ID
                 .model(model)
                 .messages(messages)
                 .build();
-
+        // 调用接口发送请求
         List<ChatCompletionChoice> choices = arkService.createChatCompletion(chatCompletionRequest).getChoices();
         if (CollUtil.isNotEmpty(choices)) {
             return (String) choices.get(0).getMessage().getContent();
         }
         throw new BusinessException(ErrorCode.OPERATION_ERROR, "AI 调用失败，没有返回结果");
-
     }
 
 }

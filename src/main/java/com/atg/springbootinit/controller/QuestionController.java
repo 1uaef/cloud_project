@@ -90,7 +90,6 @@ public class QuestionController {
         if (!oldQuestion.getUserId().equals(user.getId()) && !userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
-        // 操作数据库
         boolean result = questionService.removeById(id);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
@@ -256,6 +255,7 @@ public class QuestionController {
         boolean questionByAI = questionService.createQuestionByAI(questionType, num, loginUser);
         return ResultUtils.success(questionByAI);
     }
+
     // 批量删除题目
     @PostMapping("/delete/batch")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
