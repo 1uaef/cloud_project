@@ -43,13 +43,13 @@ public class PictureEditEventWorkHandler implements WorkHandler<PictureEditEvent
         // 根据消息类型处理消息
         switch (messageTypeEnum) {
             case ENTER_EDIT: // 用户进入编辑模式
-                pictureEditHandler.handleEnterEditMessage(pictureEditRequestMessage, session, pictureId, user);
+                pictureEditHandler.handleEnterEditMessage(pictureEditRequestMessage, session, user, pictureId);
                 break;
             case EDIT_ACTION:
-                pictureEditHandler.handleEditActionMessage(pictureEditRequestMessage, session, pictureId, user);
+                pictureEditHandler.handleEditActionMessage(pictureEditRequestMessage, session, user, pictureId);
                 break;
             case EXIT_EDIT:
-                pictureEditHandler.handleExitEditMessage(pictureEditRequestMessage, session, pictureId, user);
+                pictureEditHandler.handleExitEditMessage(pictureEditRequestMessage, session, user, pictureId);
                 break;
             default:
                 PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
