@@ -50,4 +50,8 @@ public interface UserFeedbackService extends IService<Feedback> {
      * @return
      */
     Page<UserFeedbackVO> getUserFeedbackVOPage(Page<Feedback> UserFeedbackPage, HttpServletRequest request);
+
+    // 审核
+    void toExamine(Long id, Integer status);
+
 }

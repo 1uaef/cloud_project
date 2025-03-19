@@ -1,5 +1,6 @@
 package com.atg.springbootinit.controller;
 
+import com.atg.springbootinit.model.dto.user_feed_back.UserFeedBackToExamine;
 import com.atg.springbootinit.model.dto.user_feed_back.UserFeedbackAddRequest;
 import com.atg.springbootinit.model.dto.user_feed_back.UserFeedbackQueryRequest;
 import com.atg.springbootinit.model.entity.Feedback;
@@ -158,6 +159,22 @@ public class UserFeedbackController {
                 UserFeedbackService.getQueryWrapper(UserFeedbackQueryRequest));
         // 获取封装类
         return ResultUtils.success(UserFeedbackService.getUserFeedbackVOPage(UserFeedbackPage, request));
+    }
+
+    @PostMapping("/toExamine")
+    public BaseResponse<Boolean> UserFeedBackToExamine(@RequestBody UserFeedBackToExamine UserFeedBackToExamine, HttpServletRequest request) {
+        ThrowUtils.throwIf(UserFeedBackToExamine == null, ErrorCode.PARAMS_ERROR);
+        Long id = UserFeedBackToExamine.getId();
+        Integer status = UserFeedBackToExamine.getStatus();
+        if (status == null || id == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        if (!loginUser.getUserRole().equals(UserConstant.ADMIN_ROLE)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "非管理员不能操作");
+        }
+        UserFeedbackService.toExamine(id, status);
+        return ResultUtils.success(true);
     }
 
 }

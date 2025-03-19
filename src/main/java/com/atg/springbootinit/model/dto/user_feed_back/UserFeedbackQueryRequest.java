@@ -15,6 +15,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class UserFeedbackQueryRequest extends PageRequest implements Serializable {
+
     /**
      * 内容
      */

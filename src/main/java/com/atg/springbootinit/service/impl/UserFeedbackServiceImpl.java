@@ -1,6 +1,7 @@
 package com.atg.springbootinit.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.atg.springbootinit.exception.BusinessException;
 import com.atg.springbootinit.mapper.FeedbackMapper;
 import com.atg.springbootinit.model.dto.user_feed_back.UserFeedbackQueryRequest;
 import com.atg.springbootinit.model.entity.Feedback;
@@ -156,5 +157,25 @@ public class UserFeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedbac
         FeedbackVOPage.setRecords(FeedbackVOList);
         return FeedbackVOPage;
     }
+
+    @Override
+    public void toExamine(Long id, Integer status) {
+        Feedback feedback = getById(id);
+        if (feedback == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "反馈不存在");
+        }
+        if (status == 1) {
+            feedback.setStatus(Integer.parseInt(SuggestionStatusEnum.APPROVED.getValue()));
+        }
+        if (status == 2) {
+            feedback.setStatus(Integer.parseInt(SuggestionStatusEnum.REJECTED.getValue()));
+        }
+        boolean updateById = this.updateById(feedback);
+        if (!updateById) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "操作失败");
+        }
+        log.info("用户反馈审核成功，id：{}，状态：{}", id, status);
+    }
+
 
 }
