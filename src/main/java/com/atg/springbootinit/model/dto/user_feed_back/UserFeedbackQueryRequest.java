@@ -26,7 +26,6 @@ public class UserFeedbackQueryRequest extends PageRequest implements Serializabl
     private Integer status;
 
 
-
     /**
      * 创建用户 id
      */

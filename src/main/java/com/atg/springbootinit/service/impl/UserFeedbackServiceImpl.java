@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 
 /**
  * 用户反馈服务实现
- *
-
  */
 @Service
 @Slf4j
@@ -86,13 +84,14 @@ public class UserFeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedbac
         Long userId = FeedbackQueryRequest.getUserId();
         String sortField = FeedbackQueryRequest.getSortField();
         String sortOrder = FeedbackQueryRequest.getSortOrder();
+
         // todo 补充需要的查询条件
         // 模糊查询
         queryWrapper.like(StringUtils.isNotBlank(description), "description", description);
         // 精确查询
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
         // 状态查询，使用枚举编码
-        if (status != null) {
+        if (status != null ) {
             String statusCode = getStatusCodeByValue(status);
             if (statusCode != null) {
                 queryWrapper.eq("status", statusCode);
@@ -148,11 +147,18 @@ public class UserFeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedbac
         }
         // 对象列表 => 封装对象列表
         List<UserFeedbackVO> FeedbackVOList = FeedbackList.stream().map(Feedback -> {
-            return UserFeedbackVO.objToVo(Feedback);
+            UserFeedbackVO userFeedbackVO = UserFeedbackVO.objToVo(Feedback);
+
+            User userId = userService.getById(Feedback.getUserId());
+            if (userId != null) {
+                userFeedbackVO.setUserName(userId.getUserName());
+                userFeedbackVO.setUserAvatar(userId.getUserAvatar());
+            }
+            return userFeedbackVO;
         }).collect(Collectors.toList());
 
         // todo 可以根据需要为封装对象补充值，不需要的内容可以删除
-        // 填充信息
+
 
         FeedbackVOPage.setRecords(FeedbackVOList);
         return FeedbackVOPage;

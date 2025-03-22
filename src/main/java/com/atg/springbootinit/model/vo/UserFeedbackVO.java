@@ -41,6 +41,16 @@ public class UserFeedbackVO implements Serializable {
      */
     private Date updateTime;
 
+    /**
+     * 创建人
+     */
+    private String userName;
+
+    /**
+     * 创建人的头像
+     */
+    private String userAvatar;
+
 
     /**
      * 封装类转对象

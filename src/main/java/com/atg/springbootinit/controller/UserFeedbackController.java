@@ -161,7 +161,14 @@ public class UserFeedbackController {
         return ResultUtils.success(UserFeedbackService.getUserFeedbackVOPage(UserFeedbackPage, request));
     }
 
+    /**
+     * 审核用户反馈（仅管理员可用）
+     * @param UserFeedBackToExamine
+     * @param request
+     * @return
+     */
     @PostMapping("/toExamine")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> UserFeedBackToExamine(@RequestBody UserFeedBackToExamine UserFeedBackToExamine, HttpServletRequest request) {
         ThrowUtils.throwIf(UserFeedBackToExamine == null, ErrorCode.PARAMS_ERROR);
         Long id = UserFeedBackToExamine.getId();
