@@ -5,6 +5,7 @@ import com.atg.springbootinit.model.dto.words.WordTableAddRequest;
 import com.atg.springbootinit.model.dto.words.WordTableBatchAddRequest;
 import com.atg.springbootinit.model.dto.words.WordTableQueryRequest;
 import com.atg.springbootinit.model.entity.WordTable;
+import com.atg.springbootinit.model.vo.WordVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -40,5 +41,5 @@ public interface WordTableService extends IService<WordTable> {
      * @return
      */
 
-    Page<WordTable> listWordTableByPage(WordTableQueryRequest wordTableQueryRequest, HttpServletRequest request);
+    Page<WordVO> listWordTableByPage(WordTableQueryRequest wordTableQueryRequest, HttpServletRequest request);
 }

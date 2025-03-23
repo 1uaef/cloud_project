@@ -3,8 +3,8 @@ package com.atg.springbootinit.service.impl;
 import com.atg.springbootinit.common.ErrorCode;
 import com.atg.springbootinit.exception.ThrowUtils;
 import com.atg.springbootinit.model.dto.words.WordTableAddRequest;
-import com.atg.springbootinit.model.dto.words.WordTableBatchAddRequest;
 import com.atg.springbootinit.model.dto.words.WordTableQueryRequest;
+import com.atg.springbootinit.model.vo.WordVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -12,11 +12,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.atg.springbootinit.service.WordTableService;
 import com.atg.springbootinit.mapper.WordTableMapper;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import com.atg.springbootinit.model.entity.WordTable;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author 啊汤哥
@@ -61,7 +64,7 @@ public class WordTableServiceImpl extends ServiceImpl<WordTableMapper, WordTable
     }
 
     @Override
-    public Page<WordTable> listWordTableByPage(WordTableQueryRequest wordTableQueryRequest, HttpServletRequest request) {
+    public Page<WordVO> listWordTableByPage(WordTableQueryRequest wordTableQueryRequest, HttpServletRequest request) {
         Long userId = userService.getLoginUser(request).getId();
         QueryWrapper<WordTable> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
@@ -72,7 +75,20 @@ public class WordTableServiceImpl extends ServiceImpl<WordTableMapper, WordTable
         if (wordTableQueryRequest.getDefinition() != null) {
             queryWrapper.like("definition", wordTableQueryRequest.getDefinition());
         }
-        return page(new Page<>(wordTableQueryRequest.getCurrent(), wordTableQueryRequest.getPageSize()), queryWrapper);
+        Page<WordTable> page = new Page<>(wordTableQueryRequest.getCurrent(), wordTableQueryRequest.getPageSize());
+        Page<WordTable> pageResult  = this.page(page, queryWrapper);
+        // 将 WordTable 列表转换为 WordVO 列表
+        List<WordVO> wordVOList = pageResult.getRecords().stream().map(wordTable -> {
+            WordVO wordVO = new WordVO();
+            BeanUtils.copyProperties(wordTable, wordVO);
+            return wordVO;
+        }).collect(Collectors.toList());
+        // 创建一个新的 Page<WordVO> 对象，并设置分页信息和记录列表
+        Page<WordVO> wordVOPage = new Page<>(pageResult.getCurrent(), pageResult.getSize());
+        wordVOPage.setRecords(wordVOList);
+        wordVOPage.setTotal(pageResult.getTotal());
+        return wordVOPage;
+
     }
 
     /**

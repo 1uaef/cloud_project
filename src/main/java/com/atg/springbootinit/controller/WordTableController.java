@@ -11,6 +11,7 @@ import com.atg.springbootinit.model.dto.words.WordTableQueryRequest;
 import com.atg.springbootinit.model.dto.words.WordTableUpdateRequest;
 import com.atg.springbootinit.model.entity.User;
 import com.atg.springbootinit.model.entity.WordTable;
+import com.atg.springbootinit.model.vo.WordVO;
 import com.atg.springbootinit.service.UserService;
 import com.atg.springbootinit.service.WordTableService;
 
@@ -161,10 +162,12 @@ public class WordTableController {
      * @return
      */
     @PostMapping("/list/page")
-    public BaseResponse<Page<WordTable>> listWordTableByPage(@RequestBody WordTableQueryRequest wordTableQueryRequest, HttpServletRequest request) {
-        Page<WordTable> wordTablePage = wordTableService.listWordTableByPage(wordTableQueryRequest, request);
+    public BaseResponse<Page<WordVO>> listWordTableByPage(@RequestBody WordTableQueryRequest wordTableQueryRequest, HttpServletRequest request) {
+        Page<WordVO> wordTablePage = wordTableService.listWordTableByPage(wordTableQueryRequest, request);
         return ResultUtils.success(wordTablePage);
     }
+
+    // 查询所有的单词
 
 
 
