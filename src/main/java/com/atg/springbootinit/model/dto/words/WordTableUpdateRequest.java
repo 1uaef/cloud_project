@@ -1,21 +1,21 @@
 package com.atg.springbootinit.model.dto.words;
 
+
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 /*
 author: atg
-time: 2025/3/22 11:10
+time: 2025/3/22 22:58
 */
-
-
-/**
- * 添加单词请求
- */
 @Data
-public class WordTableAddRequest implements Serializable {
+public class WordTableUpdateRequest implements Serializable {
+
+    /**
+     * 单词的唯一标识
+     */
+    private Long word_Id;
 
     /**
      * 英文单词

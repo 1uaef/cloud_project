@@ -1,8 +1,14 @@
 package com.atg.springbootinit.service;
 
 
+import com.atg.springbootinit.model.dto.words.WordTableAddRequest;
+import com.atg.springbootinit.model.dto.words.WordTableBatchAddRequest;
+import com.atg.springbootinit.model.dto.words.WordTableQueryRequest;
 import com.atg.springbootinit.model.entity.WordTable;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
 * @author 啊汤哥
@@ -11,4 +17,28 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface WordTableService extends IService<WordTable> {
 
+
+    /**
+     * 校验单词
+     * @param wordTable
+     * @param b
+     */
+    void validWordTable(WordTable wordTable, boolean b);
+
+    /**
+     * 批量校验单词
+     * @param wordTableAddRequest
+     * @param b
+     */
+    void validWordBatchTable(WordTableAddRequest wordTableAddRequest, boolean b);
+
+    /**
+     * 分页获取单词列表
+     *
+     * @param wordTableQueryRequest
+     * @param request
+     * @return
+     */
+
+    Page<WordTable> listWordTableByPage(WordTableQueryRequest wordTableQueryRequest, HttpServletRequest request);
 }

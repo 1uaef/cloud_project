@@ -1,22 +1,25 @@
 package com.atg.springbootinit.model.dto.words;
 
+
+import com.atg.springbootinit.common.PageRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
-import java.util.List;
 
 /*
 author: atg
-time: 2025/3/22 11:10
+time: 2025/3/23 14:28
 */
 
-
 /**
- * 添加单词请求
- */
-@Data
-public class WordTableAddRequest implements Serializable {
+ * 查询单词请求
+ *
 
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class WordTableQueryRequest extends PageRequest implements Serializable {
     /**
      * 英文单词
      */
@@ -26,6 +29,7 @@ public class WordTableAddRequest implements Serializable {
      * 单词的中文释义
      */
     private String definition;
+
 
     private static final long serialVersionUID = 1L;
 }
