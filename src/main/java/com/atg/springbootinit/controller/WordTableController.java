@@ -18,14 +18,12 @@ import com.atg.springbootinit.service.WordTableService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /*
@@ -58,7 +56,18 @@ public class WordTableController {
     public BaseResponse<Long> addWordTable(@RequestBody WordTableAddRequest wordTableAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(wordTableAddRequest == null, ErrorCode.PARAMS_ERROR);
         WordTable wordTable = new WordTable();
+
         BeanUtils.copyProperties(wordTableAddRequest, wordTable);
+        String tags = wordTableAddRequest.getTags();
+        // 如果单词为空，设置默认值为“外文”
+        if (wordTable.getTags() == null || wordTable.getTags().isEmpty()) {
+            wordTable.setTags("外文");
+        }
+
+        if (tags != null) {
+            String tagsStr = String.join(",", tags);
+            wordTable.setTags(tagsStr);
+        }
 
         // 数据校验
         wordTableService.validWordTable(wordTable, true);
@@ -94,10 +103,17 @@ public class WordTableController {
             // 校验每个单词请求
             wordTableService.validWordBatchTable(wordTableAddRequest, true);
 
+            // 处理标签 - 如果为空则设置默认标签"外文"
+            String tags = wordTableAddRequest.getTags();
+            if (tags == null || tags.isEmpty()) {
+                tags = "外文";
+            }
+
             // 创建新的 WordTable 对象
             WordTable wordTable = new WordTable();
             BeanUtils.copyProperties(wordTableAddRequest, wordTable); // 将 wordTableAddRequest 的属性复制到 wordTable
             wordTable.setUser_id(loginUser.getId()); // 设置用户 ID
+            wordTable.setTags(String.join(",", tags)); // 将标签列表转换为逗号分隔的字符串
 
             wordEntityList.add(wordTable); // 添加到列表
         }
@@ -168,6 +184,13 @@ public class WordTableController {
     }
 
     // 查询所有的单词
+    @GetMapping("/list")
+    public BaseResponse<List<WordVO>> listWords(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        List<WordVO> wordTableList = wordTableService.listWords(loginUser.getId());
+        return ResultUtils.success(wordTableList);
+    }
 
 
 

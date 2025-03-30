@@ -42,8 +42,14 @@ public class WordTableServiceImpl extends ServiceImpl<WordTableMapper, WordTable
             // todo 补充校验规则
             ThrowUtils.throwIf(StringUtils.isBlank(word), ErrorCode.PARAMS_ERROR);
             boolean validWord = isValidWord(word);
-
             ThrowUtils.throwIf(!validWord, ErrorCode.PARAMS_ERROR, "单词格式不正确");
+            // 校验单词是否存在
+            boolean wordExist = this.lambdaQuery().eq(WordTable::getWord, word).exists();
+            ThrowUtils.throwIf(wordExist, ErrorCode.PARAMS_ERROR, "单词已存在");
+            // 校验解释是否是中文
+            boolean validDefinition = isValidDefinition(definition);
+            ThrowUtils.throwIf(!validDefinition, ErrorCode.PARAMS_ERROR, "解释格式不正确，请输入中文");
+            ThrowUtils.throwIf(definition.length() > 20, ErrorCode.PARAMS_ERROR, "解释不能超过20个字符");
         }
         ThrowUtils.throwIf(StringUtils.isBlank(definition), ErrorCode.PARAMS_ERROR);
 
@@ -59,9 +65,18 @@ public class WordTableServiceImpl extends ServiceImpl<WordTableMapper, WordTable
             ThrowUtils.throwIf(StringUtils.isBlank(word), ErrorCode.PARAMS_ERROR);
             boolean validWord = isValidWord(word);
             ThrowUtils.throwIf(!validWord, ErrorCode.PARAMS_ERROR, "单词格式不正确");
+            // 校验单词是否存在
+            boolean wordExist = this.lambdaQuery().eq(WordTable::getWord, word).exists();
+            ThrowUtils.throwIf(wordExist, ErrorCode.PARAMS_ERROR, "单词已存在");
+            // 校验解释是否是中文
+            boolean validDefinition = isValidDefinition(definition);
+            ThrowUtils.throwIf(!validDefinition, ErrorCode.PARAMS_ERROR, "解释格式不正确，请输入中文");
+            ThrowUtils.throwIf(definition.length() > 20, ErrorCode.PARAMS_ERROR, "解释不能超过20个字符");
         }
         ThrowUtils.throwIf(StringUtils.isBlank(definition), ErrorCode.PARAMS_ERROR);
     }
+
+
 
     @Override
     public Page<WordVO> listWordTableByPage(WordTableQueryRequest wordTableQueryRequest, HttpServletRequest request) {
@@ -69,14 +84,28 @@ public class WordTableServiceImpl extends ServiceImpl<WordTableMapper, WordTable
         QueryWrapper<WordTable> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("isDelete", 0);
+        // 添加查询条件 根据日期
+        // 添加日期范围查询条件
+        if (StringUtils.isNotBlank(wordTableQueryRequest.getStartTime())
+                && StringUtils.isNotBlank(wordTableQueryRequest.getEndTime())) {
+            queryWrapper.between("createTime",
+                    wordTableQueryRequest.getStartTime(),
+                    wordTableQueryRequest.getEndTime());
+        }
+
+
+        if (wordTableQueryRequest.getTags() != null) {
+            queryWrapper.like("tags", wordTableQueryRequest.getTags());
+        }
         if (wordTableQueryRequest.getWord() != null) {
             queryWrapper.like("word", wordTableQueryRequest.getWord());
         }
         if (wordTableQueryRequest.getDefinition() != null) {
             queryWrapper.like("definition", wordTableQueryRequest.getDefinition());
         }
+        queryWrapper.orderByDesc("createTime"); // 按创建时间降序
         Page<WordTable> page = new Page<>(wordTableQueryRequest.getCurrent(), wordTableQueryRequest.getPageSize());
-        Page<WordTable> pageResult  = this.page(page, queryWrapper);
+        Page<WordTable> pageResult = this.page(page, queryWrapper);
         // 将 WordTable 列表转换为 WordVO 列表
         List<WordVO> wordVOList = pageResult.getRecords().stream().map(wordTable -> {
             WordVO wordVO = new WordVO();
@@ -91,6 +120,20 @@ public class WordTableServiceImpl extends ServiceImpl<WordTableMapper, WordTable
 
     }
 
+    @Override
+    public List<WordVO> listWords(Long id) {
+        QueryWrapper<WordTable> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", id);
+        queryWrapper.eq("isDelete", 0);
+        List<WordTable> wordTables = this.list(queryWrapper);
+        List<WordVO> wordVOList = wordTables.stream().map(wordTable -> {
+            WordVO wordVO = new WordVO();
+            BeanUtils.copyProperties(wordTable, wordVO);
+            return wordVO;
+        }).collect(Collectors.toList());
+        return wordVOList;
+    }
+
     /**
      * 校验给定的字符串是否为一个有效的单词。
      * 有效的单词仅包含字母（大小写均可）。
@@ -102,12 +145,19 @@ public class WordTableServiceImpl extends ServiceImpl<WordTableMapper, WordTable
         if (word == null || word.isEmpty()) {
             return false;
         }
+        String trimWord = word.trim();
         // 使用正则表达式检查字符串是否仅包含字母
-        return word.matches("[a-zA-Z]+");
+        return trimWord.matches("[a-zA-Z]+");
     }
 
 
-
+    private boolean isValidDefinition(String definition) {
+        if (definition == null || definition.isEmpty()) {
+            return false;
+        }
+        // 使用正则表达式检查字符串是否仅包含中文字符
+        return definition.matches("[\\u4e00-\\u9fa5]+");
+    }
 
 }
 

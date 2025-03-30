@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
 * @author 啊汤哥
@@ -42,4 +43,11 @@ public interface WordTableService extends IService<WordTable> {
      */
 
     Page<WordVO> listWordTableByPage(WordTableQueryRequest wordTableQueryRequest, HttpServletRequest request);
+
+    /**
+     * 获取单词列表
+     * @param id
+     * @return
+     */
+    List<WordVO> listWords(Long id);
 }

@@ -9,13 +9,14 @@
             <result property="user_id" column="user_id" jdbcType="BIGINT"/>
             <result property="word" column="word" jdbcType="VARCHAR"/>
             <result property="definition" column="definition" jdbcType="VARCHAR"/>
+            <result property="tags" column="tags" jdbcType="VARCHAR"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        word_id,user_id,word,
+        word_id,user_id,word,tags,
         definition,createTime,updateTime,
         isDelete
     </sql>

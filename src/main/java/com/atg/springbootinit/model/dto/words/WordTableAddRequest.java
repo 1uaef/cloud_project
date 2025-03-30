@@ -27,5 +27,11 @@ public class WordTableAddRequest implements Serializable {
      */
     private String definition;
 
+    /**
+     * 单词的标签
+     */
+
+    private String tags;
+
     private static final long serialVersionUID = 1L;
 }

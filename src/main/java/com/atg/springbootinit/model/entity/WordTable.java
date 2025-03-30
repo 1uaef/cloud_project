@@ -35,6 +35,11 @@ public class WordTable {
     private String definition;
 
     /**
+     * 标签
+     */
+    private String tags;
+
+    /**
      * 创建时间
      */
     private Date createTime;

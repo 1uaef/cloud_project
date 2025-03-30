@@ -23,6 +23,11 @@ public class WordTableUpdateRequest implements Serializable {
     private String word;
 
     /**
+     * 标签
+     */
+    private String tags;
+
+    /**
      * 单词的中文释义
      */
     private String definition;

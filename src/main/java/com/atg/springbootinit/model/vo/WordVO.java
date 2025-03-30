@@ -20,6 +20,8 @@ public class WordVO implements Serializable {
     private String word;
     // 词意
     private String definition;
+    // 标签
+    private String tags;
 
     private static final long serialVersionUID = 1L;
 }
